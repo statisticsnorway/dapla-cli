@@ -107,3 +107,69 @@ func TestClient_ListDatasets(t *testing.T) {
 		t.Errorf("Expected %v, but got %v", expectedFolder, folderElement)
 	}
 }
+
+func TestClient_DeleteDatasets(t *testing.T) {
+	defer gock.Off()
+
+	gock.New("http://server.com").
+		Delete("/api/v1/delete/foo/bar").
+		MatchHeader("Authorization", "^Bearer a secret secret$").
+		Reply(http.StatusOK).BodyString(`{
+	"datasetPath": "/foo/bar",
+	"totalSize": 15,
+	"deletedVersions":[{
+		"timestamp": "2000-01-01T00:00:00.123456Z",
+		"deletedFiles":[{
+			"uri": "gs://bucket/prefix/foo/bar/v1/file1",
+			"size": 1
+		},{
+			"uri": "gs://bucket/prefix/foo/bar/v1/file2",
+			"size": 2
+		}]
+	},{
+		"timestamp": "3000-01-01T00:00:00.123456Z",
+		"deletedFiles":[{
+			"uri": "gs://bucket/prefix/foo/bar/v2/file1",
+			"size": 4
+		},{
+			"uri": "gs://bucket/prefix/foo/bar/v2/file2",
+			"size": 8
+		}]
+	}]
+}`)
+
+	expectedResponse := DeleteDatasetResponse{
+		DatasetPath: "/foo/bar",
+		TotalSize:   15,
+		DatasetVersion: []DatasetVersion{
+			{
+				Timestamp: time.Date(2000, 1, 1, 0, 0, 0, 123456000, time.UTC),
+				DeletedFiles: []DatasetFile{
+					{Uri: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
+					{Uri: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
+				},
+			},
+			{
+				Timestamp: time.Date(3000, 1, 1, 0, 0, 0, 123456000, time.UTC),
+				DeletedFiles: []DatasetFile{
+					{Uri: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
+					{Uri: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
+				},
+			},
+		},
+	}
+
+	gock.New("http://server.com").
+		Reply(http.StatusForbidden)
+
+	var client = NewClient("http://server.com", "a secret secret")
+
+	response, err := client.DeleteDatasets("foo/bar")
+	if err != nil {
+		t.Errorf("Got error %v", err)
+	}
+
+	if !cmp.Equal(expectedResponse, *response) {
+		t.Errorf("Expected %v, but got %v", expectedResponse, response)
+	}
+}
