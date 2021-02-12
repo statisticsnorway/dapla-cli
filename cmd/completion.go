@@ -16,7 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
+	"github.com/statisticsnorway/dapla-cli/rest"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -78,4 +81,103 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// completionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+// TODO: func doAutoComplete(toComplete string, client * rest.Client) ([]string, cobra.ShellCompDirective) {
+// TODO: func (client * rest.Client) DoAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
+func doAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
+	var client, err = initClient()
+	if err != nil {
+		return handleCompleteError("could not initialize client: %s", err)
+	}
+
+	if toComplete == "" {
+		return []string{"/"}, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
+	}
+
+	var res *rest.ListDatasetResponse
+
+	if toComplete == "/" {
+		res, err = client.ListDatasets(toComplete)
+		if err != nil {
+			return handleCompleteError("could not fetch list: %s", err)
+		} else {
+			return formatCompleteResult(res)
+		}
+	}
+
+	// Special case with missing root slash.
+	if !strings.HasPrefix(toComplete, "/") {
+		return []string{"/" + toComplete}, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
+	}
+
+	// Ask for list without last element
+	var parentPath = toComplete[0:strings.LastIndex(toComplete, "/")]
+	res, err = client.ListDatasets(parentPath)
+	if err != nil {
+		return handleCompleteError("could not fetch list: ", err)
+	}
+
+	// Check if last element is a valid path / dataset
+	var partialPath = toComplete[strings.LastIndex(toComplete, "/")+1:]
+	for _, element := range *res {
+		// We have a complete match, ask data-maintenance for elements on that path
+		if toComplete == element.Path {
+			res, err = client.ListDatasets(toComplete)
+			if err != nil {
+				return handleCompleteError("could not fetch list: ", err)
+			} else {
+				return formatCompleteResult(res)
+			}
+		}
+	}
+
+	var matches rest.ListDatasetResponse
+	for _, element := range *res {
+		// find all elements that matches the last element in the provided path
+		var lastPart = element.Path[strings.LastIndex(element.Path, "/")+1 : len(element.Path)]
+		if strings.HasPrefix(lastPart, partialPath) {
+			matches = append(matches, element)
+		}
+	}
+	return formatCompleteResult(&matches)
+}
+
+// Format and set the flags based on the given elements
+func formatCompleteResult(elements *rest.ListDatasetResponse) ([]string, cobra.ShellCompDirective) {
+	var suggestions []string
+	var hasFolders = false
+	var flags = cobra.ShellCompDirectiveNoFileComp
+
+	for _, element := range *elements {
+		if element.IsFolder() {
+			hasFolders = true
+		}
+		suggestions = append(suggestions, normalizeCompleteElement(element))
+	}
+
+	// No space if folder or more than one element
+	if hasFolders || len(*elements) > 1 {
+		flags = flags | cobra.ShellCompDirectiveNoSpace
+	}
+
+	return suggestions, flags
+}
+
+// Handle the errors from the auto complete method.
+func handleCompleteError(message string, err error) ([]string, cobra.ShellCompDirective) {
+	_, _ = fmt.Fprintln(os.Stderr, message, err.Error())
+	return nil, cobra.ShellCompDirectiveError | cobra.ShellCompDirectiveNoFileComp
+}
+
+// Normalize the result of auto completion.
+func normalizeCompleteElement(element rest.ListDatasetElement) string {
+	path := element.Path
+	if strings.HasSuffix(element.Path, "/") {
+		path = strings.TrimSuffix(path, "/")
+	}
+	if element.IsFolder() {
+		path = path + "/"
+	}
+	return path
 }

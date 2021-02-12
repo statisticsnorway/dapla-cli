@@ -2,25 +2,22 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/andreyvit/diff"
 	"github.com/statisticsnorway/dapla-cli/rest"
+	"strings"
 	"testing"
 )
 
 func TestExecute(t *testing.T) {
-	tests := []struct {
-		name    string
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
+	cmd := newLsCommand()
+	b := bytes.NewBufferString("")
+	cmd.SetOut(b)
+	cmd.SetArgs([]string{"/path"})
+	cmd.Execute()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := Execute(); (err != nil) != tt.wantErr {
-				t.Errorf("Execute() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+	out := b.String()
+	if out != "rm" {
+		t.Fatalf("expected \"%s\" got \"%s\"", "hi", string(out))
 	}
 }
 
@@ -34,13 +31,13 @@ func Test(t *testing.T) {
 			rest.ListDatasetElement{Path: "/foo/bar"},
 			rest.ListDatasetElement{Path: "/foo/baz"},
 		},
-			"/foo/bar\n\r/foo/baz",
+			"/foo/bar\n/foo/baz",
 		},
 		{rest.ListDatasetResponse{
 			rest.ListDatasetElement{Path: "/foo2/bar"},
 			rest.ListDatasetElement{Path: "/foo2/baz"},
 		},
-			"/foo2/bar\n\r/foo2/baz",
+			"/foo2/bar\n/foo2/baz",
 		},
 	}
 
@@ -48,9 +45,10 @@ func Test(t *testing.T) {
 		var output bytes.Buffer
 		printNewLine(&values.response, &output)
 
-		if output.String() == values.expectedOutput {
-			fmt.Println(output.String())
-			t.Errorf("Invalid output, expected %v, got %v", values.expectedOutput, output.String())
+		if actual, expected := strings.TrimSpace(output.String()),
+			strings.TrimSpace(values.expectedOutput); actual != expected {
+			t.Errorf("Result not as expected:\n%v", diff.LineDiff(expected, actual))
 		}
 	}
+	// TODO test the other print functions
 }

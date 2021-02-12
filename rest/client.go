@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -108,7 +109,7 @@ func fetchJupyterToken(apiURL, apiToken string) (string, error) {
 	return data["access_token"].(string), nil
 }
 
-func (c *Client) createRequest(method, url string) (*http.Request, error) {
+func (c *Client) createRequest(method, url string, queryParams map[string]string) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
@@ -117,11 +118,30 @@ func (c *Client) createRequest(method, url string) (*http.Request, error) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.authBearer))
 	req.Header.Set("Accept", "application/json; charset=utf-8")
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	if queryParams != nil && len(queryParams) > 0 {
+		query := req.URL.Query()
+		for paramName, paramValue := range queryParams {
+			query.Add(paramName, paramValue)
+		}
+		req.URL.RawQuery = query.Encode()
+
+	}
 	return req, nil
 }
 
-func (c *Client) DeleteDatasets(path string) (*DeleteDatasetResponse, error) {
-	req, err := c.createRequest("DELETE", fmt.Sprintf("%s/api/v1/delete/%s", c.BaseURL, path))
+func (c *Client) DeleteDatasets(path string, dryRun bool) (*DeleteDatasetResponse, error) {
+
+	var req *http.Request
+	var err error
+
+	if dryRun {
+		req, err = c.createRequest("DELETE", fmt.Sprintf("%s/api/v1/delete/%s", c.BaseURL, path),
+			map[string]string{"dry-run": strconv.FormatBool(dryRun)})
+	} else {
+		req, err = c.createRequest("DELETE", fmt.Sprintf("%s/api/v1/delete/%s", c.BaseURL, path), nil)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +166,7 @@ func (c *Client) DeleteDatasets(path string) (*DeleteDatasetResponse, error) {
 }
 
 func (c *Client) ListDatasets(path string) (*ListDatasetResponse, error) {
-	req, err2 := c.createRequest("GET", fmt.Sprintf("%s/api/v1/list/%s", c.BaseURL, path))
+	req, err2 := c.createRequest("GET", fmt.Sprintf("%s/api/v1/list/%s", c.BaseURL, path), nil)
 	if err2 != nil {
 		return nil, err2
 	}

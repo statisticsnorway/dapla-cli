@@ -164,11 +164,23 @@ func TestClient_DeleteDatasets(t *testing.T) {
 
 	var client = NewClient("http://server.com", "a secret secret")
 
-	response, err := client.DeleteDatasets("foo/bar")
+	response, err := client.DeleteDatasets("foo/bar", false)
 	if err != nil {
 		t.Errorf("Got error %v", err)
 	}
 
+	if !cmp.Equal(expectedResponse, *response) {
+		t.Errorf("Expected %v, but got %v", expectedResponse, response)
+	}
+
+	// with dry-run
+	response, err = client.DeleteDatasets("foo/bar", true)
+
+	if err != nil {
+		t.Errorf("Got error %v", err)
+	}
+
+	// TODO check if the response indicates a dry-run
 	if !cmp.Equal(expectedResponse, *response) {
 		t.Errorf("Expected %v, but got %v", expectedResponse, response)
 	}
