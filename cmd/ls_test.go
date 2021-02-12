@@ -8,19 +8,6 @@ import (
 	"testing"
 )
 
-func TestExecute(t *testing.T) {
-	cmd := newLsCommand()
-	b := bytes.NewBufferString("")
-	cmd.SetOut(b)
-	cmd.SetArgs([]string{"/path"})
-	cmd.Execute()
-
-	out := b.String()
-	if out != "rm" {
-		t.Fatalf("expected \"%s\" got \"%s\"", "hi", string(out))
-	}
-}
-
 func Test(t *testing.T) {
 
 	tests := []struct {
