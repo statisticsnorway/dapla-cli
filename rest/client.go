@@ -38,6 +38,11 @@ type DeleteDatasetResponse struct {
 	DatasetVersion []DatasetVersion `json:"deletedVersions"`
 }
 
+type DatasetVersion struct {
+	Timestamp    time.Time     `json:"timestamp"`
+	DeletedFiles []DatasetFile `json:"deletedFiles"`
+}
+
 type DatasetFile struct {
 	Uri  string `json:"uri"`
 	Size uint64 `json:"size"`
