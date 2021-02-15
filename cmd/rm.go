@@ -17,7 +17,7 @@ var (
 func init() {
 	rmCommand := newRmCommand()
 	rmCommand.Flags().BoolVarP(&rmDebug, "debug", "d", false, "print debug information")
-	rmCommand.Flags().BoolVarP(&rmDryRun, "dry-run", "e", false, "dry run")
+	rmCommand.Flags().BoolVarP(&rmDryRun, "dry-run", "", false, "dry run")
 	rootCmd.AddCommand(rmCommand)
 }
 
@@ -56,10 +56,11 @@ func newRmCommand() *cobra.Command {
 	}
 }
 
+// Output:
 // > dapla rm /foo/bar
 //  Dataset /foo/bar (42 versions) successfully deleted
 //
-// With debug flag:
+// > dapla rm --debug /foo/bar
 //  /foo/bar [versiontimestamp]
 //  	gs://bucket/random/prefix/file1 123
 //  	gs://bucket/random/prefix/file2 123
@@ -74,7 +75,7 @@ func newRmCommand() *cobra.Command {
 //  Total size: 123456789 KiB
 //  Dataset /foo/bar (42 versions) successfully deleted
 //
-//With dry-run flag
+// > dapla rm --dry-run /foo/bar
 //  Dataset /foo/bar (42 versions) successfully deleted
 // The dry-run flag was set. NO FILES WERE DELETED.
 func printDeleteResponse(deleteResponse *rest.DeleteDatasetResponse, output io.Writer, debug bool, dryRun bool) {
@@ -82,18 +83,14 @@ func printDeleteResponse(deleteResponse *rest.DeleteDatasetResponse, output io.W
 	defer writer.Flush()
 
 	if debug {
-		noOfFiles := 0
-		var totalSize uint64 = 0
 		for _, datasetVersion := range deleteResponse.DatasetVersion {
 			fmt.Fprintf(writer, "Version: %s\n", datasetVersion.Timestamp)
 			for _, deletedFile := range datasetVersion.DeletedFiles {
-				noOfFiles++
-				totalSize = totalSize + deletedFile.Size
 				fmt.Fprintf(writer, "\t%s\n", deletedFile.Uri)
 			}
 		}
-		fmt.Fprintf(writer, "\nnumber of deleted files: %d\n", noOfFiles)
-		fmt.Fprintf(writer, "total size of deleted files: %d\n", totalSize)
+		fmt.Fprintf(writer, "\nnumber of deleted files: %d\n", deleteResponse.GetNumberOfFiles())
+		fmt.Fprintf(writer, "total size of deleted files: %d\n", deleteResponse.TotalSize)
 	}
 	fmt.Fprintf(writer, "Dataset %s (%d %s) successfully deleted\n\r",
 		deleteResponse.DatasetPath,

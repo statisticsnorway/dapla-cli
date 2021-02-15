@@ -50,13 +50,13 @@ func TestPrintTabular(t *testing.T) {
 			rest.ListDatasetElement{Path: "/foo/bar"},
 			rest.ListDatasetElement{Path: "/foo/baz"},
 		},
-			"/foo/bar       /foo/baz", // TODO how to solve this better?
+			"/foo/bar       /foo/baz", // TODO how to create expected output without adding correct number of whitespaces manually?
 		},
 		{rest.ListDatasetResponse{
 			rest.ListDatasetElement{Path: "/foo2/bar"},
 			rest.ListDatasetElement{Path: "/foo2/baz"},
 		},
-			"/foo2/bar      /foo2/baz", // TODO how to solve this better?
+			"/foo2/bar      /foo2/baz", // TODO how to create expected output without adding correct number of whitespaces manually?
 		},
 	}
 
@@ -96,7 +96,7 @@ func TestPrintTabularDetails(t *testing.T) {
 				State:     "INPUT",
 				Depth:     1,
 			},
-		}, // TODO how to solve this better?
+		}, // TODO how to create expected output without adding correct number of whitespaces manually?
 			"Name                            Author                          Created                         Type                            Valuation                       State\n" +
 				"/foo/bar                        Hadrien Kohl                    2000-01-01T00:00:00Z            BOUNDED                         INTERNAL                        INPUT\n" +
 				"/foo/baz/                       Bjørn-André Skaar               3000-01-01T00:00:00Z            BOUNDED                         INTERNAL                        INPUT",
@@ -120,7 +120,7 @@ func TestPrintTabularDetails(t *testing.T) {
 				State:     "INPUT",
 				Depth:     1,
 			},
-		}, // TODO how to solve this better?
+		}, // TODO how to create expected output without adding correct number of whitespaces manually?
 			"Name                            Author                          Created                         Type                            Valuation                       State\n" +
 				"/foo2/bar                       Hadrien Kohl                    2000-01-01T00:00:00Z            BOUNDED                         INTERNAL                        INPUT\n" +
 				"/foo2/baz/                      Bjørn-André Skaar               3000-01-01T00:00:00Z            BOUNDED                         INTERNAL                        INPUT",

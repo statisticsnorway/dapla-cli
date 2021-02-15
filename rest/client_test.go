@@ -238,3 +238,34 @@ func TestClient_DeleteDatasetsDryRun(t *testing.T) {
 		t.Errorf("Expected %v, but got %v", expectedResponse, response)
 	}
 }
+
+func TestClient_DeleteDatasetResponseMethods(t *testing.T) {
+	deleteDatasetResponse := DeleteDatasetResponse{
+		DatasetPath: "/foo/bar",
+		TotalSize:   15,
+		DatasetVersion: []DatasetVersion{
+			{
+				Timestamp: time.Date(2000, 1, 1, 0, 0, 0, 123456000, time.UTC),
+				DeletedFiles: []DatasetFile{
+					{Uri: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
+					{Uri: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
+				},
+			},
+			{
+				Timestamp: time.Date(3000, 1, 1, 0, 0, 0, 123456000, time.UTC),
+				DeletedFiles: []DatasetFile{
+					{Uri: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
+					{Uri: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
+				},
+			},
+		},
+	}
+	expectedNumberOfFiles := 4
+
+	numberOfFiles := deleteDatasetResponse.GetNumberOfFiles()
+
+	if expectedNumberOfFiles != numberOfFiles {
+		t.Errorf("Expected total number of files to be %v, but got %v", expectedNumberOfFiles, numberOfFiles)
+	}
+
+}

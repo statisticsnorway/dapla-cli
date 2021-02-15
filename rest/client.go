@@ -43,6 +43,14 @@ type DatasetVersion struct {
 	DeletedFiles []DatasetFile `json:"deletedFiles"`
 }
 
+func (r DeleteDatasetResponse) GetNumberOfFiles() int {
+	noOfFiles := 0
+	for _, datasetVersion := range r.DatasetVersion {
+		noOfFiles = noOfFiles + len(datasetVersion.DeletedFiles)
+	}
+	return noOfFiles
+}
+
 type DatasetFile struct {
 	Uri  string `json:"uri"`
 	Size uint64 `json:"size"`
