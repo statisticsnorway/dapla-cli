@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/statisticsnorway/dapla-cli/rest"
+	"github.com/statisticsnorway/dapla-cli/maintenance"
 	"os"
 	"strings"
 
@@ -86,19 +86,16 @@ func init() {
 // TODO: func doAutoComplete(toComplete string, client * rest.Client) ([]string, cobra.ShellCompDirective) {
 // TODO: func (client * rest.Client) DoAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
 func doAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
-	var client, err = initClient()
-	if err != nil {
-		return handleCompleteError("could not initialize client: %s", err)
-	}
+	var client = maintenance.NewClient(apiUrlOf(APINameDataMaintenanceSvc), authToken())
 
 	if toComplete == "" {
 		return []string{"/"}, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
 	}
 
-	var res *rest.ListDatasetResponse
+	var res *maintenance.ListDatasetResponse
 
 	if toComplete == "/" {
-		res, err = client.ListDatasets(toComplete)
+		res, err := client.ListDatasets(toComplete)
 		if err != nil {
 			return handleCompleteError("could not fetch list: %s", err)
 		} else {
@@ -113,7 +110,7 @@ func doAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
 
 	// Ask for list without last element
 	var parentPath = toComplete[0:strings.LastIndex(toComplete, "/")]
-	res, err = client.ListDatasets(parentPath)
+	res, err := client.ListDatasets(parentPath)
 	if err != nil {
 		return handleCompleteError("could not fetch list: ", err)
 	}
@@ -132,7 +129,7 @@ func doAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
 		}
 	}
 
-	var matches rest.ListDatasetResponse
+	var matches maintenance.ListDatasetResponse
 	for _, element := range *res {
 		// find all elements that matches the last element in the provided path
 		var lastPart = element.Path[strings.LastIndex(element.Path, "/")+1 : len(element.Path)]
@@ -144,7 +141,7 @@ func doAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
 }
 
 // Format and set the flags based on the given elements
-func formatCompleteResult(elements *rest.ListDatasetResponse) ([]string, cobra.ShellCompDirective) {
+func formatCompleteResult(elements *maintenance.ListDatasetResponse) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	var hasFolders = false
 	var flags = cobra.ShellCompDirectiveNoFileComp
@@ -171,7 +168,7 @@ func handleCompleteError(message string, err error) ([]string, cobra.ShellCompDi
 }
 
 // Normalize the result of auto completion.
-func normalizeCompleteElement(element rest.ListDatasetElement) string {
+func normalizeCompleteElement(element maintenance.ListDatasetElement) string {
 	path := element.Path
 	if strings.HasSuffix(element.Path, "/") {
 		path = strings.TrimSuffix(path, "/")

@@ -3,22 +3,19 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
-	"github.com/statisticsnorway/dapla-cli/rest"
+	"github.com/spf13/viper"
+	"github.com/statisticsnorway/dapla-cli/maintenance"
 	"io"
 	"os"
-	"time"
 )
 
 var (
-	rmDebug  bool
 	rmDryRun bool
 )
 
 func init() {
 	rmCommand := newRmCommand()
-	rmCommand.Flags().BoolVarP(&rmDebug, "debug", "d", false, "print debug information")
 	rmCommand.Flags().BoolVarP(&rmDryRun, "dry-run", "", false, "dry run")
 	rootCmd.AddCommand(rmCommand)
 }
@@ -34,30 +31,23 @@ func newRmCommand() *cobra.Command {
 			path := args[0]
 
 			// Create and start spinner
-			s := spinner.New(spinner.CharSets[9], 100*time.Millisecond, spinner.WithWriter(os.Stderr))
-			s.Color("reset")
-			s.Prefix = "Deleting dataset " + path + " "
-			s.Start()
-			var client, err = initClient()
-			if err != nil {
-				panic(err) // TODO don't panic!
-			}
-
+			spinner := newSpinner("Deleting dataset " + path)
+			var client = maintenance.NewClient(apiUrlOf(APINameDataMaintenanceSvc), authToken())
 			res, err := client.DeleteDatasets(path, rmDryRun)
-			s.Stop()
+			spinner.Stop()
+
 			if err != nil {
 				exitCode := 1
 				switch err.(type) {
-				case *rest.HttpError:
+				case *maintenance.HttpError:
 					exitCode = 0
 				default:
 				}
 				fmt.Println(err.Error() + "\n")
 				os.Exit(exitCode)
 			} else {
-				printDeleteResponse(res, os.Stdout, rmDebug, rmDryRun)
+				printDeleteResponse(res, os.Stdout, rmDryRun)
 			}
-
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 
@@ -89,11 +79,11 @@ func newRmCommand() *cobra.Command {
 // > dapla rm --dry-run /foo/bar
 //  Dataset /foo/bar (42 versions) successfully deleted
 // The dry-run flag was set. NO FILES WERE DELETED.
-func printDeleteResponse(deleteResponse *rest.DeleteDatasetResponse, output io.Writer, debug bool, dryRun bool) {
+func printDeleteResponse(deleteResponse *maintenance.DeleteDatasetResponse, output io.Writer, dryRun bool) {
 	writer := bufio.NewWriter(output)
 	defer writer.Flush()
 
-	if debug {
+	if viper.GetBool(CFGDebug) {
 		for _, datasetVersion := range deleteResponse.DatasetVersion {
 			fmt.Fprintf(writer, "Version: %s\n", datasetVersion.Timestamp)
 			for _, deletedFile := range datasetVersion.DeletedFiles {

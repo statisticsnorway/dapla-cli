@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/andreyvit/diff"
-	"github.com/statisticsnorway/dapla-cli/rest"
+	"github.com/spf13/viper"
+	"github.com/statisticsnorway/dapla-cli/maintenance"
 	"strings"
 	"testing"
 	"time"
@@ -13,26 +14,26 @@ import (
 func TestExecuteRM(t *testing.T) {
 
 	tests := []struct {
-		response                     rest.DeleteDatasetResponse
+		response                     maintenance.DeleteDatasetResponse
 		expectedOutput               string
 		expectedOutputDebug          string
 		expectedOutputDryRun         string
 		expectedOutputDebugAndDryRun string
 	}{
-		{response: rest.DeleteDatasetResponse{
+		{response: maintenance.DeleteDatasetResponse{
 			DatasetPath: "/foo/bar",
 			TotalSize:   15,
-			DatasetVersion: []rest.DatasetVersion{
+			DatasetVersion: []maintenance.DatasetVersion{
 				{
 					Timestamp: time.Date(2000, 1, 1, 0, 0, 0, 123456000, time.UTC),
-					DeletedFiles: []rest.DatasetFile{
+					DeletedFiles: []maintenance.DatasetFile{
 						{Uri: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
 						{Uri: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
 					},
 				},
 				{
 					Timestamp: time.Date(3000, 1, 1, 0, 0, 0, 123456000, time.UTC),
-					DeletedFiles: []rest.DatasetFile{
+					DeletedFiles: []maintenance.DatasetFile{
 						{Uri: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
 						{Uri: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
 					},
@@ -69,7 +70,7 @@ func TestExecuteRM(t *testing.T) {
 		var output bytes.Buffer
 
 		// Test rm without flags
-		printDeleteResponse(&values.response, &output, false, false)
+		printDeleteResponse(&values.response, &output, false)
 		if actual, expected := strings.TrimSpace(output.String()),
 			strings.TrimSpace(values.expectedOutput); actual != expected {
 			fmt.Println("***** <rm> WITHOUT FLAGS *****")
@@ -78,7 +79,8 @@ func TestExecuteRM(t *testing.T) {
 		output.Reset()
 
 		// Test rm with debug flag
-		printDeleteResponse(&values.response, &output, true, false)
+		viper.Set(CFGDebug, true)
+		printDeleteResponse(&values.response, &output,  false)
 
 		if actual, expected := strings.TrimSpace(output.String()),
 			strings.TrimSpace(values.expectedOutputDebug); actual != expected {
@@ -88,7 +90,8 @@ func TestExecuteRM(t *testing.T) {
 		output.Reset()
 
 		// Test rm with dry-run flag
-		printDeleteResponse(&values.response, &output, false, true)
+		viper.Set(CFGDebug, false)
+		printDeleteResponse(&values.response, &output, true)
 
 		if actual, expected := strings.TrimSpace(output.String()),
 			strings.TrimSpace(values.expectedOutputDryRun); actual != expected {
@@ -98,7 +101,8 @@ func TestExecuteRM(t *testing.T) {
 		output.Reset()
 
 		// Test rm with both debug and dry-run flags
-		printDeleteResponse(&values.response, &output, true, true)
+		viper.Set(CFGDebug, true)
+		printDeleteResponse(&values.response, &output, true)
 
 		if actual, expected := strings.TrimSpace(output.String()),
 			strings.TrimSpace(values.expectedOutputDebugAndDryRun); actual != expected {

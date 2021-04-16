@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
-	"github.com/statisticsnorway/dapla-cli/rest"
+	"github.com/statisticsnorway/dapla-cli/maintenance"
 	"io"
 	"os"
 	"strings"
@@ -22,17 +21,14 @@ func newLsCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "ls [PATH]...",
 		Short: "List the datasets and folders under a PATH",
-		Long: `The ls 	command list the datasets and folders under a given PATH.`,
+		Long: `The ls command list the datasets and folders under a given PATH.`,
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 
-			var client, err = initClient()
-			if err != nil {
-				panic(err) // TODO don't panic!
-			}
+			var client = maintenance.NewClient(apiUrlOf(APINameDataMaintenanceSvc), authToken())
 
 			// Use newline when not in terminal (piped)
-			var printFunction func(datasets *rest.ListDatasetResponse, output io.Writer)
+			var printFunction func(datasets *maintenance.ListDatasetResponse, output io.Writer)
 			if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
 				if lsLong {
 					printFunction = printTabularDetails
@@ -49,7 +45,7 @@ func newLsCommand() *cobra.Command {
 				if err != nil {
 					exitCode := 1
 					switch err.(type) {
-					case *rest.HttpError:
+					case *maintenance.HttpError:
 						exitCode = 0
 					default:
 					}
@@ -78,23 +74,6 @@ func newLsCommand() *cobra.Command {
 	}
 }
 
-func initClient() (*rest.Client, error) {
-	if jupyter && bearerToken != "" {
-		return nil, errors.New("cannot use both --jupyter and --token")
-	}
-
-	switch {
-
-	case jupyter:
-		return rest.NewClientWithJupyter(serverUrl)
-
-	case bearerToken != "":
-		return rest.NewClient(serverUrl, bearerToken), nil
-	default:
-		return nil, errors.New("use --jupyter or define the --token")
-	}
-}
-
 func init() {
 	lsCommand := newLsCommand()
 	lsCommand.Flags().BoolVarP(&lsLong, "", "l", false, "use a long listing format")
@@ -102,7 +81,7 @@ func init() {
 }
 
 // Prints the dataset names
-func printNewLine(datasets *rest.ListDatasetResponse, output io.Writer) {
+func printNewLine(datasets *maintenance.ListDatasetResponse, output io.Writer) {
 	writer := bufio.NewWriter(output)
 	defer writer.Flush()
 	for _, dataset := range *datasets {
@@ -121,7 +100,7 @@ func (c ColorWriter) Write(p []byte) (int, error) {
 	return len(p), err
 }
 
-func printTabular(datasets *rest.ListDatasetResponse, output io.Writer) {
+func printTabular(datasets *maintenance.ListDatasetResponse, output io.Writer) {
 	colorOutput := ColorWriter{out: output}
 	// TODO: Test with strip escape (\xff[colorstuff]\xff" ).
 	writer := tabwriter.NewWriter(colorOutput, 15, 0, 2, ' ', tabwriter.FilterHTML)
@@ -153,7 +132,7 @@ func printTabular(datasets *rest.ListDatasetResponse, output io.Writer) {
 }
 
 // Prints the datasets in tabular format. Datasets are white and folders blue and with a trailing '/'
-func printTabularDetails(datasets *rest.ListDatasetResponse, output io.Writer) {
+func printTabularDetails(datasets *maintenance.ListDatasetResponse, output io.Writer) {
 	colorOutput := ColorWriter{out: output}
 	writer := tabwriter.NewWriter(colorOutput, 15, 0, 2, ' ', tabwriter.FilterHTML)
 	defer writer.Flush()
@@ -168,7 +147,8 @@ func printTabularDetails(datasets *rest.ListDatasetResponse, output io.Writer) {
 	for _, dataset := range *datasets {
 		if dataset.IsFolder() {
 			fmt.Fprintln(writer,
-				color.WrapTag(dataset.Path, "blue")+"/", "\t",
+				//color.WrapTag(dataset.Path, "blue")+"/", "\t",
+				dataset.Path +"/", "\t",
 				dataset.CreatedBy+"\t",
 				dataset.CreatedAt.Format(time.RFC3339), "\t",
 				dataset.Type, "\t",

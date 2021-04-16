@@ -1,17 +1,15 @@
-package rest
+package maintenance
 
 import (
 	"encoding/json"
 	"fmt"
-	errors2 "github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
-	"net/url"
-	"os"
 	"strconv"
 	"time"
 )
 
+// Client struct is a facade against the data-maintenance API
 type Client struct {
 	BaseURL    string
 	Client     *http.Client
@@ -27,9 +25,7 @@ func (httpError *HttpError) Error() string {
 	return httpError.message + " (" + strconv.Itoa(httpError.statusCode) + ")"
 }
 
-const jupyterHUBTokenURL = "JUPYTERHUB_HANDLER_CUSTOM_AUTH_URL"
-const jupyterAPIToken = "JUPYTERHUB_API_TOKEN"
-
+// ListDatasetElement struct holds one result item from the ListDatasets method
 type ListDatasetElement struct {
 	Path      string    `json:"path"`
 	CreatedBy string    `json:"createdBy"`
@@ -40,6 +36,7 @@ type ListDatasetElement struct {
 	Depth     int       `json:"depth"`
 }
 
+// ListDatasetResponse holds an array of result item from the ListDatasets method
 type ListDatasetResponse []ListDatasetElement
 
 type DeleteDatasetResponse struct {
@@ -74,62 +71,13 @@ func (e ListDatasetElement) IsDataset() bool {
 	return !e.IsFolder()
 }
 
+// NewClient func creates a new client that talks with the data-maintenance API
 func NewClient(baseURL string, authBearer string) *Client {
 	return &Client{
 		BaseURL:    baseURL,
 		Client:     http.DefaultClient,
 		authBearer: authBearer,
 	}
-}
-
-func NewClientWithJupyter(baseURL string) (*Client, error) {
-
-	apiURL := os.Getenv(jupyterHUBTokenURL)
-	apiToken := os.Getenv(jupyterAPIToken)
-	if apiToken == "" || apiURL == "" {
-		return nil, errors2.Errorf("missing environment %s or %s", jupyterHUBTokenURL, jupyterAPIToken)
-	}
-
-	token, err := fetchJupyterToken(apiURL, apiToken)
-	if err != nil {
-		return nil, err
-	}
-	return &Client{
-		BaseURL:    baseURL,
-		Client:     http.DefaultClient,
-		authBearer: token,
-	}, nil
-}
-
-// Fetch the JTW token from jupyter environment
-func fetchJupyterToken(apiURL, apiToken string) (string, error) {
-	parsedURL, err := url.Parse(apiURL)
-	if err != nil {
-		return "", err
-	}
-
-	client := http.DefaultClient
-	req, err := http.NewRequest(http.MethodGet, parsedURL.String(), nil)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", apiToken))
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
-		return "", fmt.Errorf("unknown error, status code: %d", res.StatusCode)
-	}
-
-	var data map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&data)
-	if err != nil {
-		return "", nil
-	}
-
-	return data["access_token"].(string), nil
 }
 
 func (c *Client) createRequest(method, url string, queryParams map[string]string) (*http.Request, error) {
@@ -153,6 +101,7 @@ func (c *Client) createRequest(method, url string, queryParams map[string]string
 	return req, nil
 }
 
+// DeleteDatasets client method implements rm command for a specific path
 func (c *Client) DeleteDatasets(path string, dryRun bool) (*DeleteDatasetResponse, error) {
 
 	var req *http.Request
@@ -188,6 +137,7 @@ func (c *Client) DeleteDatasets(path string, dryRun bool) (*DeleteDatasetRespons
 	return &resp, nil
 }
 
+// ListDatasets client method implements ls command for a specific path
 func (c *Client) ListDatasets(path string) (*ListDatasetResponse, error) {
 	req, err2 := c.createRequest("GET", fmt.Sprintf("%s/api/v1/list/%s", c.BaseURL, path), nil)
 	if err2 != nil {
