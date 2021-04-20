@@ -26,7 +26,7 @@ func newLsCommand() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 
-			var client = maintenance.NewClient(apiUrlOf(APINameDataMaintenanceSvc), authToken())
+			var client = maintenance.NewClient(apiURLOf(APINameDataMaintenanceSvc), authToken())
 
 			// Use newline when not in terminal (piped)
 			var printFunction func(datasets *maintenance.ListDatasetResponse, output io.Writer)
@@ -46,7 +46,7 @@ func newLsCommand() *cobra.Command {
 				if err != nil {
 					exitCode := 1
 					switch err.(type) {
-					case *maintenance.HttpError:
+					case *maintenance.HTTPError:
 						exitCode = 0
 					default:
 					}
@@ -90,11 +90,11 @@ func printNewLine(datasets *maintenance.ListDatasetResponse, output io.Writer) {
 	}
 }
 
-type ColorWriter struct {
+type colorWriter struct {
 	out io.Writer
 }
 
-func (c ColorWriter) Write(p []byte) (int, error) {
+func (c colorWriter) Write(p []byte) (int, error) {
 	// Simply send the result of replace tag. Note that we need
 	// to send the size of the buffer.
 	_, err := fmt.Fprint(c.out, color.ReplaceTag(string(p)))
@@ -102,7 +102,7 @@ func (c ColorWriter) Write(p []byte) (int, error) {
 }
 
 func printTabular(datasets *maintenance.ListDatasetResponse, output io.Writer) {
-	colorOutput := ColorWriter{out: output}
+	colorOutput := colorWriter{out: output}
 	// TODO: Test with strip escape (\xff[colorstuff]\xff" ).
 	writer := tabwriter.NewWriter(colorOutput, 15, 0, 2, ' ', tabwriter.FilterHTML)
 	defer writer.Flush()
@@ -134,7 +134,7 @@ func printTabular(datasets *maintenance.ListDatasetResponse, output io.Writer) {
 
 // Prints the datasets in tabular format. Datasets are white and folders blue and with a trailing '/'
 func printTabularDetails(datasets *maintenance.ListDatasetResponse, output io.Writer) {
-	colorOutput := ColorWriter{out: output}
+	colorOutput := colorWriter{out: output}
 	writer := tabwriter.NewWriter(colorOutput, 15, 0, 2, ' ', tabwriter.FilterHTML)
 	defer writer.Flush()
 

@@ -28,6 +28,8 @@ var rootCmd = &cobra.Command{
 				platform.`,
 }
 
+// Execute uses the command line args  and run through the command tree finding appropriate matches
+// for commands and then corresponding flags.
 func Execute() error {
 	return rootCmd.Execute()
 }
@@ -75,7 +77,7 @@ func initConfig() {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; which is okay
 		} else {
-			panic(fmt.Errorf("Configuration error: %s \n", err))
+			panic(fmt.Errorf("configuration error: %s", err))
 		}
 	}
 

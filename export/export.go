@@ -28,7 +28,7 @@ type Request struct {
 
 // Response struct holds results after exporting a dataset
 type Response struct {
-	TargetUri string
+	TargetURI string `json:"targetUri"`
 }
 
 // Client struct is a facade against the dapla-pseudo-service API

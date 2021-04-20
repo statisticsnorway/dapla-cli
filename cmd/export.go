@@ -34,12 +34,12 @@ func newExportCommand() *cobra.Command {
 			}
 
 			spinner := newSpinner("This might take some time...")
-			client := export.NewClient(apiUrlOf(APINamePseudoSvc), authToken(), viper.GetBool(CFGDebug))
+			client := export.NewClient(apiURLOf(APINamePseudoSvc), authToken(), viper.GetBool(CFGDebug))
 			res, err := client.Export(req)
 			cobra.CheckErr(err)
 			spinner.Stop()
 
-			fmt.Println(res.TargetUri)
+			fmt.Println(res.TargetURI)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return doAutoComplete(toComplete)

@@ -124,15 +124,15 @@ func TestClient_DeleteDatasets(t *testing.T) {
 			{
 				Timestamp: time.Date(2000, 1, 1, 0, 0, 0, 123456000, time.UTC),
 				DeletedFiles: []DatasetFile{
-					{Uri: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
-					{Uri: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
+					{URI: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
+					{URI: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
 				},
 			},
 			{
 				Timestamp: time.Date(3000, 1, 1, 0, 0, 0, 123456000, time.UTC),
 				DeletedFiles: []DatasetFile{
-					{Uri: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
-					{Uri: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
+					{URI: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
+					{URI: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
 				},
 			},
 		},
@@ -189,15 +189,15 @@ func TestClient_DeleteDatasetsDryRun(t *testing.T) {
 			{
 				Timestamp: time.Date(2000, 1, 1, 0, 0, 0, 123456000, time.UTC),
 				DeletedFiles: []DatasetFile{
-					{Uri: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
-					{Uri: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
+					{URI: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
+					{URI: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
 				},
 			},
 			{
 				Timestamp: time.Date(3000, 1, 1, 0, 0, 0, 123456000, time.UTC),
 				DeletedFiles: []DatasetFile{
-					{Uri: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
-					{Uri: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
+					{URI: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
+					{URI: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
 				},
 			},
 		},
@@ -226,15 +226,15 @@ func TestClient_DeleteDatasetResponseMethods(t *testing.T) {
 			{
 				Timestamp: time.Date(2000, 1, 1, 0, 0, 0, 123456000, time.UTC),
 				DeletedFiles: []DatasetFile{
-					{Uri: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
-					{Uri: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
+					{URI: "gs://bucket/prefix/foo/bar/v1/file1", Size: 1},
+					{URI: "gs://bucket/prefix/foo/bar/v1/file2", Size: 2},
 				},
 			},
 			{
 				Timestamp: time.Date(3000, 1, 1, 0, 0, 0, 123456000, time.UTC),
 				DeletedFiles: []DatasetFile{
-					{Uri: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
-					{Uri: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
+					{URI: "gs://bucket/prefix/foo/bar/v2/file1", Size: 4},
+					{URI: "gs://bucket/prefix/foo/bar/v2/file2", Size: 8},
 				},
 			},
 		},

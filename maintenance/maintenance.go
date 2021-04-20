@@ -16,12 +16,13 @@ type Client struct {
 	authBearer string
 }
 
-type HttpError struct {
+// HTTPError holds information returned from an erroneous HTTP request, such as status code and error message
+type HTTPError struct {
 	statusCode int
 	message    string
 }
 
-func (httpError *HttpError) Error() string {
+func (httpError *HTTPError) Error() string {
 	return httpError.message + " (" + strconv.Itoa(httpError.statusCode) + ")"
 }
 
@@ -39,17 +40,20 @@ type ListDatasetElement struct {
 // ListDatasetResponse holds an array of result item from the ListDatasets method
 type ListDatasetResponse []ListDatasetElement
 
+// DeleteDatasetResponse holds results from invoking the DeteDatasets method
 type DeleteDatasetResponse struct {
 	DatasetPath    string           `json:"datasetPath"`
 	TotalSize      uint64           `json:"totalSize"`
 	DatasetVersion []DatasetVersion `json:"deletedVersions"`
 }
 
+// DatasetVersion holds an array of deleted files for a specific version/timestamp of a dataset (after rm command)
 type DatasetVersion struct {
 	Timestamp    time.Time     `json:"timestamp"`
 	DeletedFiles []DatasetFile `json:"deletedFiles"`
 }
 
+// GetNumberOfFiles returns the number of deleted files from a DeleteDatasetResponse
 func (r DeleteDatasetResponse) GetNumberOfFiles() int {
 	noOfFiles := 0
 	for _, datasetVersion := range r.DatasetVersion {
@@ -58,15 +62,18 @@ func (r DeleteDatasetResponse) GetNumberOfFiles() int {
 	return noOfFiles
 }
 
+// DatasetFile holds information about a dataset file
 type DatasetFile struct {
-	Uri  string `json:"uri"`
+	URI  string `json:"uri"`
 	Size uint64 `json:"size"`
 }
 
+// IsFolder returns true iff a ListDatasetElement represents a folder
 func (e ListDatasetElement) IsFolder() bool {
 	return e.Depth > 0
 }
 
+// IsDataset returns true iff a ListDatasetElement represents a dataset
 func (e ListDatasetElement) IsDataset() bool {
 	return !e.IsFolder()
 }
@@ -122,7 +129,7 @@ func (c *Client) DeleteDatasets(path string, dryRun bool) (*DeleteDatasetRespons
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
 		bytes, _ := ioutil.ReadAll(res.Body)
-		return nil, &HttpError{
+		return nil, &HTTPError{
 			statusCode: res.StatusCode,
 			message:    string(bytes),
 		}
@@ -152,7 +159,7 @@ func (c *Client) ListDatasets(path string) (*ListDatasetResponse, error) {
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
 		bytes, _ := ioutil.ReadAll(res.Body)
-		return nil, &HttpError{
+		return nil, &HTTPError{
 			statusCode: res.StatusCode,
 			message:    string(bytes),
 		}

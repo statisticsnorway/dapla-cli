@@ -1,18 +1,3 @@
-/*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -86,7 +71,7 @@ func init() {
 // TODO: func doAutoComplete(toComplete string, client * rest.Client) ([]string, cobra.ShellCompDirective) {
 // TODO: func (client * rest.Client) DoAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
 func doAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
-	var client = maintenance.NewClient(apiUrlOf(APINameDataMaintenanceSvc), authToken())
+	var client = maintenance.NewClient(apiURLOf(APINameDataMaintenanceSvc), authToken())
 
 	if toComplete == "" {
 		return []string{"/"}, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
@@ -98,9 +83,9 @@ func doAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
 		res, err := client.ListDatasets(toComplete)
 		if err != nil {
 			return handleCompleteError("could not fetch list: %s", err)
-		} else {
-			return formatCompleteResult(res)
 		}
+
+		return formatCompleteResult(res)
 	}
 
 	// Special case with missing root slash.
@@ -123,9 +108,9 @@ func doAutoComplete(toComplete string) ([]string, cobra.ShellCompDirective) {
 			res, err = client.ListDatasets(toComplete)
 			if err != nil {
 				return handleCompleteError("could not fetch list: ", err)
-			} else {
-				return formatCompleteResult(res)
 			}
+
+			return formatCompleteResult(res)
 		}
 	}
 

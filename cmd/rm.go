@@ -33,14 +33,14 @@ func newRmCommand() *cobra.Command {
 
 			// Create and start spinner
 			spinner := newSpinner("Deleting dataset " + path)
-			var client = maintenance.NewClient(apiUrlOf(APINameDataMaintenanceSvc), authToken())
+			var client = maintenance.NewClient(apiURLOf(APINameDataMaintenanceSvc), authToken())
 			res, err := client.DeleteDatasets(path, rmDryRun)
 			spinner.Stop()
 
 			if err != nil {
 				exitCode := 1
 				switch err.(type) {
-				case *maintenance.HttpError:
+				case *maintenance.HTTPError:
 					exitCode = 0
 				default:
 				}
@@ -88,7 +88,7 @@ func printDeleteResponse(deleteResponse *maintenance.DeleteDatasetResponse, outp
 		for _, datasetVersion := range deleteResponse.DatasetVersion {
 			fmt.Fprintf(writer, "Version: %s\n", datasetVersion.Timestamp)
 			for _, deletedFile := range datasetVersion.DeletedFiles {
-				fmt.Fprintf(writer, "\t%s\n", deletedFile.Uri)
+				fmt.Fprintf(writer, "\t%s\n", deletedFile.URI)
 			}
 		}
 		fmt.Fprintf(writer, "\nnumber of deleted files: %d\n", deleteResponse.GetNumberOfFiles())
