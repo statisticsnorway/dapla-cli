@@ -1,7 +1,12 @@
-# dapla-cli [![CI](https://github.com/statisticsnorway/dapla-cli/actions/workflows/main.yml/badge.svg)](https://github.com/statisticsnorway/dapla-cli/actions/workflows/main.yml)
+# dapla-cli 
 
 The dapla cli is a command-line application users can use to interract with the da(ta)pla(form). The command 
 has several sub-commands.
+
+[![CI](https://github.com/statisticsnorway/dapla-cli/actions/workflows/main.yml/badge.svg)](https://github.com/statisticsnorway/dapla-cli/actions/workflows/main.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/statisticsnorway/dapla-cli?style=flat-square)](https://goreportcard.com/report/github.com/statisticsnorway/dapla-cli)
+[![Release](https://img.shields.io/github/release/statisticsnorway/dapla-cli.svg?style=flat-square)](https://github.com/statisticsnorway/dapla-cli/releases/latest)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/statisticsnorway/dapla-cli)
 
 ```
 # dapla --help
