@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"bytes"
-	"github.com/acarl005/stripansi"
-	"github.com/andreyvit/diff"
-	"github.com/statisticsnorway/dapla-cli/maintenance"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/acarl005/stripansi"
+	"github.com/andreyvit/diff"
+	"github.com/statisticsnorway/dapla-cli/maintenance"
 )
 
 func TestPrintNewLine(t *testing.T) {
@@ -137,7 +138,7 @@ Name           Author              Created                 Type           Valuat
 		if actual, expected :=
 			diff.TrimLinesInString(stripansi.Strip(output.String())), // actual
 			diff.TrimLinesInString(values.expectedOutput); // expected
-			actual != expected {
+		actual != expected {
 
 			t.Errorf("Result not as expected:\n%v", diff.LineDiff(expected, actual))
 		}

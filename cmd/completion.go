@@ -17,11 +17,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/statisticsnorway/dapla-cli/maintenance"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/statisticsnorway/dapla-cli/maintenance"
 )
 
 var completionCmd = &cobra.Command{

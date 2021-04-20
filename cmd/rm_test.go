@@ -3,12 +3,13 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/andreyvit/diff"
-	"github.com/spf13/viper"
-	"github.com/statisticsnorway/dapla-cli/maintenance"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/andreyvit/diff"
+	"github.com/spf13/viper"
+	"github.com/statisticsnorway/dapla-cli/maintenance"
 )
 
 func TestExecuteRM(t *testing.T) {
@@ -80,7 +81,7 @@ func TestExecuteRM(t *testing.T) {
 
 		// Test rm with debug flag
 		viper.Set(CFGDebug, true)
-		printDeleteResponse(&values.response, &output,  false)
+		printDeleteResponse(&values.response, &output, false)
 
 		if actual, expected := strings.TrimSpace(output.String()),
 			strings.TrimSpace(values.expectedOutputDebug); actual != expected {

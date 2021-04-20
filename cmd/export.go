@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/statisticsnorway/dapla-cli/export"
-	"time"
 )
 
 var (
@@ -27,9 +28,9 @@ func newExportCommand() *cobra.Command {
 			for p, f := range pseudoRuleMap {
 				i++
 				req.PseudoRules = append(req.PseudoRules, export.PseudoRule{
-					Name: fmt.Sprintf("rule-%d", i),
+					Name:    fmt.Sprintf("rule-%d", i),
 					Pattern: p,
-					Func: f})
+					Func:    f})
 			}
 
 			spinner := newSpinner("This might take some time...")

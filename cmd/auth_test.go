@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"gopkg.in/h2non/gock.v1"
 	"net/http"
 	"testing"
+
+	"gopkg.in/h2non/gock.v1"
 )
 
 func TestClient_fetchJupyterToken(t *testing.T) {

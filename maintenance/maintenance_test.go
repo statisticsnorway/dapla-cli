@@ -1,11 +1,12 @@
 package maintenance
 
 import (
-	"github.com/google/go-cmp/cmp"
-	"gopkg.in/h2non/gock.v1"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
+	"gopkg.in/h2non/gock.v1"
 )
 
 func TestClient_ListDatasets(t *testing.T) {

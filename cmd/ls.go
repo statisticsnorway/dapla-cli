@@ -3,14 +3,15 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/statisticsnorway/dapla-cli/maintenance"
 	"io"
 	"os"
 	"strings"
 	"text/tabwriter"
 	"time"
+
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/statisticsnorway/dapla-cli/maintenance"
 )
 
 var (
@@ -21,8 +22,8 @@ func newLsCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "ls [PATH]...",
 		Short: "List the datasets and folders under a PATH",
-		Long: `The ls command list the datasets and folders under a given PATH.`,
-		Args: cobra.MinimumNArgs(1),
+		Long:  `The ls command list the datasets and folders under a given PATH.`,
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 
 			var client = maintenance.NewClient(apiUrlOf(APINameDataMaintenanceSvc), authToken())
@@ -148,7 +149,7 @@ func printTabularDetails(datasets *maintenance.ListDatasetResponse, output io.Wr
 		if dataset.IsFolder() {
 			fmt.Fprintln(writer,
 				//color.WrapTag(dataset.Path, "blue")+"/", "\t",
-				dataset.Path +"/", "\t",
+				dataset.Path+"/", "\t",
 				dataset.CreatedBy+"\t",
 				dataset.CreatedAt.Format(time.RFC3339), "\t",
 				dataset.Type, "\t",

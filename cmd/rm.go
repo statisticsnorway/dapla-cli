@@ -3,11 +3,12 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/statisticsnorway/dapla-cli/maintenance"
-	"io"
-	"os"
 )
 
 var (

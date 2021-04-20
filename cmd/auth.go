@@ -3,17 +3,18 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	errors2 "github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
 	"os"
+
+	errors2 "github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (
 	jupyterHUBTokenURL = "JUPYTERHUB_HANDLER_CUSTOM_AUTH_URL"
-	jupyterAPIToken = "JUPYTERHUB_API_TOKEN"
+	jupyterAPIToken    = "JUPYTERHUB_API_TOKEN"
 )
 
 // TODO: We don't need any jupyter environment variable, either the token is explicitly provided, or we should try to retrieve it from jupyter
@@ -81,4 +82,3 @@ func fetchJupyterToken(apiURL, apiToken string) (string, error) {
 
 	return data["access_token"].(string), nil
 }
-
