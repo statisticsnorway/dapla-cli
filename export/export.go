@@ -55,11 +55,13 @@ func (c *Client) Export(req Request) (*Response, error) {
 		SetResult(&Response{}). // or SetResult(AuthSuccess{}).
 		Post(fmt.Sprintf("%s/export", c.baseURL))
 
+	if err != nil {
+		return nil, err
+	}
+
 	if resp.StatusCode() >= 400 {
 		err = errors.New(resp.Status())
 	}
 
-	exportRes := resp.Result().(*Response)
-
-	return exportRes, err
+	return resp.Result().(*Response), nil
 }

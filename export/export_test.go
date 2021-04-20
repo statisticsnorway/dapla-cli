@@ -21,7 +21,7 @@ func TestClient_Export(t *testing.T) {
 	gock.New("http://server.com").
 		Reply(http.StatusForbidden)
 
-	var client = NewClient("http://server.com", "a secret secret", true)
+	client := NewClient("http://server.com", "a secret secret", true)
 	gock.InterceptClient(client.RestClient.GetClient())
 
 	var req = Request{

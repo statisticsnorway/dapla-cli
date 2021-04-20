@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"gopkg.in/h2non/gock.v1"
 )
 
@@ -20,11 +22,7 @@ func TestClient_fetchJupyterToken(t *testing.T) {
 		Reply(http.StatusForbidden)
 
 	token, err := fetchJupyterToken("http://server.com/foo/bar/token", "the api token")
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	if token != "the access token" {
-		t.Errorf("expected %s but got %s", "the access token", token)
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, token, "the access token")
 }
