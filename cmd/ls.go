@@ -81,7 +81,7 @@ func init() {
 	rootCmd.AddCommand(lsCommand)
 }
 
-// Prints the dataset names
+// printNewLine prints the dataset names
 func printNewLine(datasets *maintenance.ListDatasetResponse, output io.Writer) {
 	writer := bufio.NewWriter(output)
 	defer writer.Flush()
@@ -132,7 +132,7 @@ func printTabular(datasets *maintenance.ListDatasetResponse, output io.Writer) {
 	_, _ = fmt.Fprintln(writer)
 }
 
-// Prints the datasets in tabular format. Datasets are white and folders blue and with a trailing '/'
+// printTabularDetails prints the datasets in tabular format. Datasets are white and folders blue and with a trailing '/'
 func printTabularDetails(datasets *maintenance.ListDatasetResponse, output io.Writer) {
 	colorOutput := colorWriter{out: output}
 	writer := tabwriter.NewWriter(colorOutput, 15, 0, 2, ' ', tabwriter.FilterHTML)

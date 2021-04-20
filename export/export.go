@@ -7,14 +7,14 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-// PseudoRule struct represents a single pseudonymization rule
+// PseudoRule represents a single pseudonymization rule
 type PseudoRule struct {
 	Name    string `json:"name"`
 	Pattern string `json:"pattern"`
 	Func    string `json:"func"`
 }
 
-// Request struct holds parameters used to invoke the dapla-pseudo-service export endpoint
+// Request holds parameters used to invoke the dapla-pseudo-service export endpoint
 type Request struct {
 	DatasetPath       string       `json:"datasetPath"`
 	DatasetTimestamp  int64        `json:"datasetTimestamp"`
@@ -26,19 +26,19 @@ type Request struct {
 	PseudoRules       []PseudoRule `json:"pseudoRules"`
 }
 
-// Response struct holds results after exporting a dataset
+// Response holds results after exporting a dataset
 type Response struct {
 	TargetURI string `json:"targetUri"`
 }
 
-// Client struct is a facade against the dapla-pseudo-service API
+// Client is a facade against the dapla-pseudo-service API
 type Client struct {
 	baseURL    string
 	RestClient resty.Client
 	authToken  string
 }
 
-// NewClient func creates a new client that talks with the dapla-pseudo-service API
+// NewClient creates a new client that talks with the dapla-pseudo-service API
 func NewClient(baseURL string, token string, debug bool) *Client {
 	return &Client{
 		RestClient: *resty.New().SetDebug(debug),
