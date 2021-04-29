@@ -19,6 +19,7 @@ type Request struct {
 	DatasetPath            string       `json:"datasetPath"`
 	ColumnSelectors        []string     `json:"columnSelectors"`
 	TargetContentName      string       `json:"targetContentName"`
+	TargetContentType      string       `json:"targetContentType"`
 	TargetPassword         string       `json:"targetPassword"`
 	Depseudonymize         bool         `json:"depseudonymize"`
 	PseudoRules            []PseudoRule `json:"pseudoRules"`

@@ -13,6 +13,12 @@ var (
 	pseudoRuleMap map[string]string
 )
 
+// TODO: Use enumflag instead (https://pkg.go.dev/github.com/thediveo/enumflag)
+var contentTypeMap = map[string]string{
+	"json": "application/json",
+	"csv":  "text/csv",
+}
+
 func newExportCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "export [PATH]",
@@ -32,6 +38,9 @@ func newExportCommand() *cobra.Command {
 					Func:    f})
 			}
 
+			// translate file type to content type
+			req.TargetContentType = contentTypeMap[req.TargetContentType]
+
 			spinner := newSpinner("This might take some time...")
 			client := export.NewClient(apiURLOf(APINamePseudoSvc), authToken(), viper.GetBool(CFGDebug))
 			res, err := client.Export(req)
@@ -49,8 +58,10 @@ func newExportCommand() *cobra.Command {
 func init() {
 	exportCommand := newExportCommand()
 	exportCommand.Flags().StringVarP(&req.TargetContentName, "name", "n", "", "optional descriptive name of the contents, used as baseline for the target archive name")
+	exportCommand.Flags().StringArrayVarP(&req.ColumnSelectors, "cols", "c", []string{}, "optional list of glob patterns that can be used to specify a subset of fields to export")
 	exportCommand.Flags().StringVarP(&req.TargetPassword, "password", "p", "", "password used to protect target archive")
 	exportCommand.MarkFlagRequired("password")
+	exportCommand.Flags().StringVarP(&req.TargetContentType, "target-filetype", "t", "json", "the export filetype (json or csv)")
 	exportCommand.Flags().BoolVar(&req.Depseudonymize, "depseudo", false, "depseudonymize data during export")
 	exportCommand.Flags().StringToStringVar(&pseudoRuleMap, "pseudo-rules", map[string]string{}, "explicit pseudo rules to use")
 	exportCommand.Flags().StringVar(&req.PseudoRulesDatasetPath, "pseudo-rules-path", "", "path to retrieve pseudo rules from")
