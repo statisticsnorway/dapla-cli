@@ -100,21 +100,20 @@ Flags:
 The export command exports (and optionally depseudonymizes) a dataset from Dapla to GCS.
 
 ```
-$ dapla export --help
-
 The export command exports (and optionally depseudonymizes) a specified dataset
 
 Usage:
-  dapla export [PATH]... [flags]
+  dapla export [PATH] [flags]
 
 Flags:
+  -c, --cols stringArray              optional list of glob patterns that can be used to specify a subset of fields to export
       --depseudo                      depseudonymize data during export
   -h, --help                          help for export
-  -n, --name string                   descriptive name of the contents, used as baseline for the target archive name
+  -n, --name string                   optional descriptive name of the contents, used as baseline for the target archive name
   -p, --password string               password used to protect target archive
-      --pseudo-rules stringToString   password used to protect target archive (default [])
-      --target-path string            path to where the exported dataset archive will be stored
-  -t, --timestamp int                 optional timestamp of dataset, resolved against the closest matching version (default 1618599695335)
+      --pseudo-rules stringToString   explicit pseudo rules to use (default [])
+      --pseudo-rules-path string      path to retrieve pseudo rules from
+  -t, --target-filetype string        the export filetype (json or csv) (default "json")
 ```
 
 ### completion
