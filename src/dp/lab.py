@@ -2,16 +2,19 @@ import json
 import logging
 import subprocess
 from enum import Enum
+from typing import Annotated
 from typing import Any
 
 import typer
 from rich import print
 from rich.console import Console
 from typer import Typer
-from typing_extensions import Annotated
 
 from .annotations import dryrunnable
-from .utils import gray, green, print_err, red
+from .utils import green
+from .utils import grey
+from .utils import print_err
+from .utils import red
 
 app = Typer()
 err = Console(stderr=True)
@@ -23,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 class Env(str, Enum):
+    """Denotes the environment to operate on."""
+
     prod = "prod"
     test = "test"
     dev = "dev"
@@ -57,9 +62,8 @@ def doctor() -> None:
     try:
         _assert_successful_command("kubectl version", "kubectl is not installed")
         _assert_successful_command("helm version", "helm is not installed")
-        _assert_successful_command("blah version", "blah is not installed")
     except ValueError as e:
-        print(f"[bold red]{e}[/bold red]")
+        print(red(e))
 
     print(green("You're aye okay 🎉"))
 
@@ -123,7 +127,6 @@ def kill_services(
     verbose: verbose_option = False,
 ) -> None:
     """Kill all services in the specified namespace."""
-
     validate_env(env)
     services = _get_helm_releases(namespace)
 
@@ -158,7 +161,7 @@ def suspend_services(
     user namespaces will be affected.
     """
     validate_env(env)
-    suspend = unsuspend == False
+    suspend = True if not unsuspend else False
     processed_count = 0
     skipped_count = 0
     namespaces = _get_all_user_namespaces() if namespace == "all" else [namespace]
@@ -199,6 +202,7 @@ def suspend_services(
 
 
 def validate_env(env: Env) -> None:
+    """Validate that the current kubernetes context is a dapla-lab context and matches the specified environment."""
     current_context_name = _get_current_cluster_name()
     if not current_context_name.startswith("gke_dapla-lab-"):
         print_err(
@@ -218,14 +222,12 @@ def _run_command(
 ) -> tuple[str, str, int]:
     """Runs a shell command and returns its output and error status."""
     if verbose:
-        print(gray(f"{'DRYRUN: ' if dryrun else ''}{command}"))
+        print(grey(f"{'DRYRUN: ' if dryrun else ''}{command}"))
 
     if dryrun:
         return "", "", 0
 
-    result = subprocess.run(
-        command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+    result = subprocess.run(command, shell=True, text=True, capture_output=True)
     return result.stdout, result.stderr, result.returncode
 
 
@@ -247,9 +249,7 @@ def _get_helm_releases(namespace: str) -> list[dict[str, Any]]:
     return helm_releases
 
 
-def _get_helm_release_values(
-    helm_release_name: str, namespace: str
-) -> dict[str, Any]:
+def _get_helm_release_values(helm_release_name: str, namespace: str) -> dict[str, Any]:
     res = _run_command(
         f"helm get values {helm_release_name} --namespace {namespace} --output json"
     )

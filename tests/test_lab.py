@@ -1,6 +1,7 @@
-from dp import lab
-from unittest.mock import patch
 import io
+from unittest.mock import patch
+
+from dp import lab
 
 
 def test_doctor():

@@ -7,7 +7,7 @@ from dp import utils
 def test_colors() -> None:
     assert utils.red("Hello World") == "[bold red]Hello World[/bold red]"
     assert utils.green("Hello World") == "[bold green]Hello World[/bold green]"
-    assert utils.gray("Hello World") == "[bright_black]Hello World[/bright_black]"
+    assert utils.grey("Hello World") == "[grey50]Hello World[/grey50]"
 
 
 def test_print_err() -> None:
