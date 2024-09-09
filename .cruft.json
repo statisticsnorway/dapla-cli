@@ -1,0 +1,30 @@
+{
+  "template": "https://github.com/statisticsnorway/ssb-pypitemplate.git",
+  "commit": "70e4bd378ffc9e87a885d938e3befd89ea26ad5b",
+  "checkout": "2024.8.8",
+  "context": {
+    "cookiecutter": {
+      "project_name": "dapla-cli",
+      "package_name": "dp",
+      "friendly_name": "Dapla CLI",
+      "copyright_owner": "Statistics Norway",
+      "copyright_year": "2024",
+      "author": "Team Statistikktjenester",
+      "email": "kons_schu@ssb.no",
+      "github_organization": "statisticsnorway",
+      "version": "0.0.0",
+      "license": "MIT",
+      "development_status": "Development Status :: 4 - Beta",
+      "code_quality_level": "Medium",
+      "_copy_without_render": [
+        "*.rst_t"
+      ],
+      "_jinja2_env_vars": {
+        "lstrip_blocks": true,
+        "trim_blocks": true
+      },
+      "_template": "https://github.com/statisticsnorway/ssb-pypitemplate.git"
+    }
+  },
+  "directory": null
+}
