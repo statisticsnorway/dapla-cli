@@ -26,12 +26,19 @@
 [poetry]: https://python-poetry.org/
 
 
+
 ## Installation
 
-Install with [pipx]:
+Install with [pipx] from [pypi]:
 
 ```console
 pipx install dapla-cli
+```
+
+or install a local development edition with [pipx] from the source code:
+
+```console
+pipx install --editable .
 ```
 
 ## Usage
@@ -58,7 +65,7 @@ please [file an issue] along with a detailed description.
 This project was generated from [Statistics Norway]'s [SSB PyPI Template].
 
 [statistics norway]: https://www.ssb.no/en
-[pypi]: https://pypi.org/
+[pypi]: https://pypi.org/project/dapla-cli/
 [ssb pypi template]: https://github.com/statisticsnorway/ssb-pypitemplate
 [file an issue]: https://github.com/statisticsnorway/dapla-cli/issues
 [pipx]: https://pipx.pypa.io/
