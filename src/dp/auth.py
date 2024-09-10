@@ -120,7 +120,10 @@ def local_access_token(env: Env, ensure_valid: bool = True) -> str:
         ensure_valid: If True, the token is refreshed (if needed) before returning it.
 
     Returns:
-        a valid JWT access token
+        str: A valid JWT access token.
+
+    Raises:
+        typer.Exit: If no access token is found, prompts the user to log in and exits.
     """
     access_token: str = config.get("auth", "access_token", namespace=env.value)
     if not access_token:
