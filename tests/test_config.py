@@ -3,20 +3,20 @@ from configparser import ConfigParser
 from dp import config
 
 
-def test_set_creates_new_section_if_not_exists(mocker):
+def test_put_creates_new_section_if_not_exists(mocker):
     configparser = ConfigParser()
     mocker.patch("dp.config._load_config", return_value=configparser)
     mocker.patch("dp.config._save_config")
-    config.set("new_section", "key", "value", None)
+    config.put("new_section", "key", "value", None)
     config._save_config.assert_called_once()
 
 
-def test_set_updates_existing_section(mocker):
+def test_put_updates_existing_section(mocker):
     configparser = ConfigParser()
     configparser["existing_section"] = {"key": "old_value"}
     mocker.patch("dp.config._load_config", return_value=configparser)
     mocker.patch("dp.config._save_config")
-    config.set("existing_section", "key", "new_value", None)
+    config.put("existing_section", "key", "new_value", None)
     assert configparser["existing_section"]["key"] == "new_value"
     config._save_config.assert_called_once()
 

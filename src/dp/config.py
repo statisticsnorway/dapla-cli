@@ -1,12 +1,12 @@
 import configparser
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import typer
 
 
-def set(section: str, key: str, value: Any, namespace: Optional[str]) -> None:
+def put(section: str, key: str, value: Any, namespace: str | None) -> None:
     """Set a config value for a key in a section."""
     config = _load_config(namespace)
     if section not in config:
@@ -15,7 +15,7 @@ def set(section: str, key: str, value: Any, namespace: Optional[str]) -> None:
     _save_config(config, namespace)
 
 
-def get(section: str, key: str, namespace: Optional[str]) -> Any:
+def get(section: str, key: str, namespace: str | None) -> Any:
     """Retrieve the config value of a key in a section."""
     config = _load_config(namespace)
     if section in config and key in config[section]:
@@ -24,7 +24,7 @@ def get(section: str, key: str, namespace: Optional[str]) -> Any:
     return None
 
 
-def remove(section: str, namespace: Optional[str]) -> None:
+def remove(section: str, namespace: str | None) -> None:
     """Remove a section from the config."""
     config = _load_config(namespace)
     if section in config:
@@ -32,14 +32,14 @@ def remove(section: str, namespace: Optional[str]) -> None:
         _save_config(config, namespace)
 
 
-def _config_file(namespace: Optional[str]) -> Path:
+def _config_file(namespace: str | None) -> Path:
     config_dir = Path(typer.get_app_dir("dapla-cli"))
     config_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
     filename = "config.ini" if namespace is None else f"config-{namespace}.ini"
     return config_dir / filename
 
 
-def _load_config(namespace: Optional[str]) -> ConfigParser:
+def _load_config(namespace: str | None) -> ConfigParser:
     """Load the config file."""
     config = configparser.ConfigParser()
     config_file = _config_file(namespace)
@@ -48,7 +48,7 @@ def _load_config(namespace: Optional[str]) -> ConfigParser:
     return config
 
 
-def _save_config(config: ConfigParser, namespace: Optional[str]) -> None:
+def _save_config(config: ConfigParser, namespace: str | None) -> None:
     """Save the config file."""
     with open(_config_file(namespace), "w") as f:
         config.write(f)

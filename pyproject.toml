@@ -109,7 +109,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-force-single-line = true
+force-single-line = false
 
 [tool.ruff.lint.mccabe]
 max-complexity = 15

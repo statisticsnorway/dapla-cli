@@ -2,8 +2,7 @@ import json
 import logging
 import subprocess
 from enum import Enum
-from typing import Annotated
-from typing import Any
+from typing import Annotated, Any
 
 import typer
 from rich import print
@@ -11,10 +10,7 @@ from rich.console import Console
 from typer import Typer
 
 from .annotations import dryrunnable
-from .utils import green
-from .utils import grey
-from .utils import print_err
-from .utils import red
+from .utils import green, grey, print_err, red
 
 app = Typer()
 err = Console(stderr=True)

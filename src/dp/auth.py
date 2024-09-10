@@ -123,7 +123,7 @@ def local_access_token(env: Env, ensure_valid: bool = True) -> str:
         str: A valid JWT access token.
 
     Raises:
-        typer.Exit: If no access token is found, prompts the user to log in and exits.
+        Exit: If no access token is found, prompts the user to log in and exits.
     """
     access_token: str = config.get("auth", "access_token", namespace=env.value)
     if not access_token:
@@ -195,13 +195,13 @@ def _poll_for_token(device_code: str, code_verifier: str, env: Env) -> str:
                 result = response.json()
                 access_token: str = result["access_token"]
                 refresh_token: str = result["refresh_token"]
-                config.set(
+                config.put(
                     section="auth",
                     key="access_token",
                     value=access_token,
                     namespace=env.value,
                 )
-                config.set(
+                config.put(
                     section="auth",
                     key="refresh_token",
                     value=refresh_token,
@@ -267,13 +267,13 @@ def _refresh_token(env: Env) -> str:
         result = response.json()
         new_access_token: str = result["access_token"]
         new_refresh_token: str = result["refresh_token"]
-        config.set(
+        config.put(
             section="auth",
             key="access_token",
             value=new_access_token,
             namespace=env.value,
         )
-        config.set(
+        config.put(
             section="auth",
             key="refresh_token",
             value=new_refresh_token,

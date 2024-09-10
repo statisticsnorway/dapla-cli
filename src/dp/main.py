@@ -2,8 +2,7 @@ import logging
 
 from typer import Typer
 
-from . import auth
-from . import lab
+from . import auth, lab
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
