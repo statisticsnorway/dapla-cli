@@ -125,7 +125,7 @@ def local_access_token(env: Env, ensure_valid: bool = True) -> str:
     Raises:
         Exit: If no access token is found, prompts the user to log in and exits.
     """
-    access_token: str = config.get("auth", "access_token", namespace=env.value)
+    access_token = config.get("auth", "access_token", namespace=env.value)
     if not access_token:
         print(f"No access token found for {env.value}. Please log in.")
         raise typer.Exit(code=1)
@@ -136,7 +136,7 @@ def local_access_token(env: Env, ensure_valid: bool = True) -> str:
         if (current_time + 300) >= decoded_token["exp"]:
             access_token = _refresh_token(env)
 
-    return access_token
+    return access_token or ""
 
 
 def _init_device_flow(env: Env) -> dict[str, str]:
