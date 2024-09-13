@@ -3,7 +3,7 @@ from typing import Any
 from rich.console import Console
 from typer import Typer
 
-err = Console(stderr=True, force_terminal=False)
+err = Console(stderr=True)
 
 app = Typer()
 
