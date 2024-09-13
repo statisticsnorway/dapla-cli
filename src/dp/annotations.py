@@ -15,11 +15,12 @@ def dryrunnable(f: Callable[..., Any]) -> Callable[..., Any]:
     """
 
     @wraps(f)
-    def wrapper(
-        *args: tuple[Any], dryrun: bool = False, **kwargs: dict[str, Any]
-    ) -> Any:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        dryrun = kwargs.get("dryrun", False)
+
         if dryrun:
             print(red("Dry run enabled. No state will be mutated."))
-        return f(*args, dryrun=dryrun, **kwargs)
+
+        return f(*args, **kwargs)
 
     return wrapper

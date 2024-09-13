@@ -9,5 +9,5 @@ logging.basicConfig(
 )
 
 app = Typer()
-app.add_typer(auth.app, name="auth", help="Authenticate dp with KeyCloak")
+app.add_typer(auth.app, name="auth", help="Authenticate dp with Keycloak")
 app.add_typer(lab.app, name="lab", help="Interact with Dapla Lab services")
