@@ -2,6 +2,7 @@ import io
 
 from dp import lab
 from dp.lab import Env
+from dp.utils import strip_ansi
 
 
 def test_doctor_all_commands_successful(mocker):
@@ -94,7 +95,7 @@ def test_kill_services_no_services(mocker):
     mocker.patch("dp.lab.validate_env")
     with mocker.patch("sys.stdout", new=io.StringIO()) as mock_stdout:
         lab.kill_services(env=Env.dev, namespace="some-ns", dryrun=False, verbose=True)
-        assert "No services found in namespace {namespace}" in mock_stdout.getvalue().strip()
+        assert "No services found in namespace" in mock_stdout.getvalue()
 
 
 def test_kill_services_with_services(mocker):
@@ -126,7 +127,7 @@ def test_suspend_services_successful(mocker):
             verbose=True,
             unsuspend=False,
         )
-        assert "Suspended 1 services" in mock_stdout.getvalue()
+        assert "Suspended 1 services" in strip_ansi(mock_stdout.getvalue())
 
 
 def test_suspend_services_error(mocker):

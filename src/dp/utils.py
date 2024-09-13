@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, re
 
 from rich.console import Console
 from typer import Typer
@@ -26,3 +26,8 @@ def grey(text: Any) -> str:
 def print_err(text: Any) -> None:
     """Prints to standard error stream."""
     err.print(red(text))
+
+def strip_ansi(text: str) -> str:
+    """Strip ANSI escape sequences from text."""
+    ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+    return ansi_escape.sub('', text)
