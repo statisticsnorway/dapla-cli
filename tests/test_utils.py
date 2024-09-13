@@ -1,6 +1,8 @@
 import io
 from unittest import mock
 
+from rich.console import Console
+
 from dp import utils
 
 
@@ -12,7 +14,6 @@ def test_colors() -> None:
 
 def test_print_err() -> None:
     text = "This is an error message"
-
     with mock.patch("sys.stderr", new=io.StringIO()) as fake_stderr:
         utils.print_err(text)
-        assert fake_stderr.getvalue().strip() == text
+        assert fake_stderr.getvalue().strip() == text.strip()
