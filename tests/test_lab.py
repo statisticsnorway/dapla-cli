@@ -127,7 +127,8 @@ def test_suspend_services_successful(mocker):
             verbose=True,
             unsuspend=False,
         )
-        assert "Suspended 1 services" in strip_ansi(mock_stdout.getvalue())
+        output = mock_stdout.getvalue()
+        assert "Suspended 1 services" in strip_ansi(output)
 
 
 def test_suspend_services_error(mocker):
