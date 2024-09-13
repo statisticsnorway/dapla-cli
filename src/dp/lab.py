@@ -13,7 +13,7 @@ from .annotations import dryrunnable
 from .utils import green, grey, print_err, red
 
 app = Typer()
-err = Console(stderr=True)
+err = Console(stderr=True, force_terminal=True)
 logger = logging.getLogger(__name__)
 
 
