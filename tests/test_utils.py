@@ -14,7 +14,10 @@ def test_colors() -> None:
 
 def test_print_err() -> None:
     text = "This is an error message"
-    mock.patch("utils.err", Console(force_terminal=False))
-    with mock.patch("sys.stderr", new=io.StringIO()) as fake_stderr:
+
+    patch_err = mock.patch("dp.utils.err", Console(stderr=True, force_terminal=False))
+    patch_stderr = mock.patch("sys.stderr", new=io.StringIO())
+
+    with patch_err, patch_stderr as fake_stderr:
         utils.print_err(text)
-        assert fake_stderr.getvalue().strip() == text.strip()
+        assert fake_stderr.getvalue().strip() == text
