@@ -94,7 +94,7 @@ def test_kill_services_no_services(mocker):
     mocker.patch("dp.lab.validate_env")
     with mocker.patch("sys.stdout", new=io.StringIO()) as mock_stdout:
         lab.kill_services(env=Env.dev, namespace="some-ns", dryrun=False, verbose=True)
-        assert "No services found in namespace {namespace}" in mock_stdout.getvalue()
+        assert "No services found in namespace {namespace}" in mock_stdout.getvalue().strip()
 
 
 def test_kill_services_with_services(mocker):
