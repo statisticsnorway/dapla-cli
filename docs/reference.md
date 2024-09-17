@@ -13,13 +13,63 @@ delete the .rst file afterwards.
 
 ```{eval-rst}
 dp package
-=============================================================================
+==========
 
+Submodules
+----------
 
-dp.functions module
------------------------------------------------------------------------------
+dp.annotations module
+---------------------
 
-.. automodule:: dp.functions
+.. automodule:: dp.annotations
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+dp.auth module
+--------------
+
+.. automodule:: dp.auth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+dp.config module
+----------------
+
+.. automodule:: dp.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+dp.lab module
+-------------
+
+.. automodule:: dp.lab
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+dp.main module
+--------------
+
+.. automodule:: dp.main
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+dp.utils module
+---------------
+
+.. automodule:: dp.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: dp
    :members:
    :undoc-members:
    :show-inheritance:
