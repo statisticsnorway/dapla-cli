@@ -8,7 +8,7 @@ from dp.main import app
 runner = CliRunner()
 
 
-@pytest.fixture()
+@pytest.fixture
 def cli_runner() -> CliRunner:
     """Fixture for invoking command-line interfaces."""
     return runner
