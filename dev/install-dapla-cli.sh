@@ -12,5 +12,5 @@ else
     pipx install dapla-cli
 fi
 
-# Run any additional commands
-exec "$@"
+# Start a shell
+/bin/bash
