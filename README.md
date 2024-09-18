@@ -50,11 +50,11 @@ pipx install --editable .
 Alternatively, use `make help` for other options, such as running Dapla CLI in an isolated environment:
 
 ```console
-run-isolated                   Run Dapla CLI in isolated environment (Docker container) using latest release from PyPI
-run-isolated-dev               Run Dapla CLI in isolated environment (Docker container) using latest release from local source (in editable mode)
-pipx-install                   Install with pipx from PyPI
-pipx-install-editable          Install with pipx from the source code in editable mode
-build-docker                   Build local Docker image for testing in an isolated environment
+run-isolated       Run Dapla CLI in isolated environment (Docker container) using latest release from PyPI
+run-isolated-dev   Run Dapla CLI in isolated environment (Docker container) using latest release from local source (in editable mode)
+pipx-install       Install with pipx from PyPI
+pipx-install-dev   Install with pipx from the source code in editable mode
+build-docker       Build local Docker image for testing in an isolated environment
 ```
 
 ## Contributing

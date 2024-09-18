@@ -9,8 +9,8 @@ default: | help
 pipx-install: ## Install with pipx from PyPI
 	pipx install dapla-cli
 
-.PHONY: pipx-install-editable
-pipx-install-editable: ## Install with pipx from the source code in editable mode
+.PHONY: pipx-install-dev
+pipx-install-dev: ## Install with pipx from the source code in editable mode
 	pipx install --editable .
 
 .PHONY: build-docker
