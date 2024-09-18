@@ -24,4 +24,3 @@ run-isolated: build-docker ## Run Dapla CLI in isolated environment (Docker cont
 .PHONY: run-isolated-dev
 run-isolated-dev: build-docker ## Run Dapla CLI in isolated environment (Docker container) using latest release from local source (in editable mode)
 	docker run -v $(PWD)/:/mnt/dapla-cli -it dapla-cli -c bash
-
