@@ -35,15 +35,27 @@ Install with [pipx] from [pypi]:
 pipx install dapla-cli
 ```
 
-or install a local development edition with [pipx] from the source code:
+## Usage
+
+Please see the [Reference Guide] for details.
+
+## Development
+
+Install a local development edition with [pipx] from the source code:
 
 ```console
 pipx install --editable .
 ```
 
-## Usage
+Alternatively, use `make help` for other options, such as running Dapla CLI in an isolated environment:
 
-Please see the [Reference Guide] for details.
+```console
+run-isolated       Run Dapla CLI in isolated environment (Docker container) using latest release from PyPI
+run-isolated-dev   Run Dapla CLI in isolated environment (Docker container) using latest release from local source (in editable mode)
+pipx-install       Install with pipx from PyPI
+pipx-install-dev   Install with pipx from the source code in editable mode
+build-docker       Build local Docker image for testing in an isolated environment
+```
 
 ## Contributing
 
