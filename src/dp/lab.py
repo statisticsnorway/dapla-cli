@@ -52,8 +52,10 @@ verbose_option = Annotated[
 def doctor() -> None:
     """Check if required tooling and environment is ok."""
     try:
-        _assert_successful_command("kubectl version", "kubectl is not installed")
-        _assert_successful_command("helm version", "helm is not installed")
+        _assert_successful_command(
+            "which kubectl", "kubectl is not installed", "kubectl"
+        )
+        _assert_successful_command("which helm", "helm is not installed", "helm")
     except ValueError as e:
         print(red(e))
 
@@ -285,8 +287,10 @@ def _determine_chart_name(helm_release_name: str) -> str:
     )
 
 
-def _assert_successful_command(cmd: str, msg: str) -> None:
+def _assert_successful_command(cmd: str, err_msg: str, success_msg: str | None) -> None:
     res = _run_command(f"eval {cmd} > /dev/null")
     if res[2] != 0:
-        err.print(red(msg))
+        err.print(f"❌  {red(err_msg)}")
         raise typer.Exit(code=1)
+    if success_msg:
+        print(f"✔️ {success_msg}")
