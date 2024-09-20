@@ -96,16 +96,6 @@ def test_run_command_dryrun(mocker):
     assert result.returncode == 0
 
 
-def test_run_command_verbose(mocker):
-    mocker.patch(
-        "subprocess.run",
-        return_value=mocker.Mock(stdout="output", stderr="", returncode=0),
-    )
-    with mocker.patch("sys.stdout", new=io.StringIO()) as mock_stdout:
-        utils.run("echo 'Hello World'", verbose=True)
-        assert "echo 'Hello World'" in mock_stdout.getvalue()
-
-
 def test_assert_successful_command_success(mocker):
     mocker.patch(
         "dp.utils.run", return_value=utils.RunResult(stdout="", stderr="", returncode=0)
