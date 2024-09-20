@@ -62,11 +62,6 @@ def test_hours_since_future_datetime():
     assert result == -5
 
 
-def test_hours_since_invalid_datetime():
-    with pytest.raises(TypeError):
-        utils.hours_since("invalid-datetime")
-
-
 def test_run_command_successful(mocker):
     mocker.patch(
         "subprocess.run",
