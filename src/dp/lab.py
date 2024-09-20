@@ -1,8 +1,9 @@
 import json
 import logging
+from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, Any, Callable
+from typing import Annotated, Any
 
 import typer
 from pydantic import BaseModel
@@ -303,19 +304,12 @@ def _prune(
     kill_suspended_threshold: int = 48,
     suspend_threshold: int = 0,
 ) -> RunResult:
-    """
-    Prune services based on a time threshold.
+    """Prune services based on a time threshold.
 
-    If a service has been running for more than `kill_threshold' hours, it is killed.
-    If a service has been suspended for more than `kill_suspended_threshold' hours, it is killed.
-    If a service has status 'failed', it is killed.
-    If a
-    :param service:
-    :param dryrun:
-    :param verbose:
-    :param kill_threshold:
-    :param kill_suspended_threshold:
-    :return:
+    * Kill a service if it has been running for more than kill_threshold hours (defaults to 1 week).
+    * Kill a service if it has been suspended for more than kill_suspended_threshold hours (defaults to 2 days).
+    * Kill a service if its status is failed.
+    * Suspend a service if it has not been updated in the last suspend_threshold hours (defaults to immediately).
     """
     hours_since_started = hours_since(service.created) if service.created else 0
     hours_since_updated = hours_since(service.updated) if service.updated else 0
