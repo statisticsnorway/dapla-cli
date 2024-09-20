@@ -1,20 +1,23 @@
 import json
 import logging
-import subprocess
+from datetime import datetime
 from enum import Enum
-from typing import Annotated, Any
+from typing import Annotated, Any, Callable
 
 import typer
+from pydantic import BaseModel
 from rich import print
 from rich.console import Console
 from typer import Typer
 
 from .annotations import dryrunnable
-from .utils import green, grey, print_err, red
+from .utils import RunResult, green, hours_since, print_err, red, run
 
 app = Typer()
 err = Console(stderr=True, force_terminal=True)
 logger = logging.getLogger(__name__)
+
+dt_format = "2006-01-02T15:04:05.999999999Z"
 
 
 class Env(str, Enum):
@@ -23,6 +26,30 @@ class Env(str, Enum):
     prod = "prod"
     test = "test"
     dev = "dev"
+
+
+class OperationType(str, Enum):
+    """Denotes the operation type to perform on services when processing services."""
+
+    suspend = "suspend"
+    unsuspend = "unsuspend"
+    kill = "kill"
+    prune = "prune"
+
+
+class Service(BaseModel):
+    """A Dapla Lab service."""
+
+    name: str
+    namespace: str
+    revision: str | None = None
+    updated: datetime | None = None
+    status: str | None = None
+    suspended: bool | None = None
+    chart: str | None = None
+    app_version: str | None = None
+    chart_version: str | None = None
+    created: datetime | None = None
 
 
 # Common options
@@ -49,6 +76,25 @@ verbose_option = Annotated[
 
 
 @app.command()
+def add_chart_repos(
+    verbose: verbose_option = False,
+) -> None:
+    """Add required dapla-lab service helm chart repositories.
+
+    The repositories must be added before we can modify helm releases (such as suspending services).
+    """
+    chart_repos = {
+        "dapla-lab-standard": "https://statisticsnorway.github.io/dapla-lab-helm-charts-standard",
+        "dapla-lab-experimental": "https://statisticsnorway.github.io/dapla-lab-helm-charts-experimental",
+    }
+
+    for name, url in chart_repos.items():
+        res = run(f"helm repo add {name} {url}", verbose=verbose)
+        if res.returncode != 0:
+            print_err(res.stderr)
+
+
+@app.command()
 def doctor() -> None:
     """Check if required tooling and environment is ok."""
     try:
@@ -63,34 +109,15 @@ def doctor() -> None:
 
 
 @app.command()
-def add_chart_repos(
-    verbose: verbose_option = False,
-) -> None:
-    """Add required dapla-lab service helm chart repositories.
-
-    The repositories must be added before we can modify helm releases (such as suspending services).
-    """
-    chart_repos = {
-        "dapla-lab-standard": "https://statisticsnorway.github.io/dapla-lab-helm-charts-standard",
-        "dapla-lab-experimental": "https://statisticsnorway.github.io/dapla-lab-helm-charts-experimental",
-    }
-
-    for name, url in chart_repos.items():
-        res = _run_command(f"helm repo add {name} {url}", verbose=verbose)
-        if res[2] != 0:
-            print_err(res[1])
-
-
-@app.command()
 def list_services(
     env: env_option,
     namespace: namespace_option,
     verbose: verbose_option = False,
 ) -> None:
     """List all services in the specified namespace."""
-    validate_env(env)
-    res = _run_command(f"helm list --namespace {namespace}", verbose=verbose)
-    print(res[0])
+    _validate_env(env)
+    res = run(f"helm list --namespace {namespace}", verbose=verbose)
+    print(res.stdout)
 
 
 @app.command()
@@ -103,13 +130,8 @@ def kill_service(
     verbose: verbose_option = False,
 ) -> None:
     """Kill a service in the specified namespace."""
-    validate_env(env)
-    logger.info(f"Kill service {service_name} in namespace {namespace}")
-    _run_command(
-        f"helm delete {service_name} --namespace {namespace}",
-        dryrun=dryrun,
-        verbose=verbose,
-    )
+    _validate_env(env)
+    _kill(Service(name=service_name, namespace=namespace), dryrun, verbose)
 
 
 @app.command()
@@ -120,21 +142,11 @@ def kill_services(
     dryrun: dryrun_option = False,
     verbose: verbose_option = False,
 ) -> None:
-    """Kill all services in the specified namespace."""
-    validate_env(env)
-    services = _get_helm_releases(namespace)
+    """Kill all services in the specified namespace.
 
-    if len(services) == 0:
-        print("No services found in namespace {namespace}")
-    else:
-        for svc in services:
-            logger.info(f"Kill service {svc['name']} in namespace {namespace}")
-            if not dryrun:
-                _run_command(
-                    f"helm delete --namespace {namespace} {svc['name']}",
-                    dryrun=dryrun,
-                    verbose=verbose,
-                )
+    If the namespace is set to 'all', all user namespaces will be affected.
+    """
+    _process_services(env, namespace, OperationType.kill, dryrun, verbose)
 
 
 @app.command()
@@ -144,58 +156,197 @@ def suspend_services(
     namespace: namespace_option,
     dryrun: dryrun_option = False,
     verbose: verbose_option = False,
-    unsuspend: Annotated[
-        bool,
-        typer.Option("--unsuspend", help="Unsuspend services (instead of suspend)"),
-    ] = False,
 ) -> None:
-    """Suspend or unsuspend user services.
+    """Suspend user services.
 
     All services in the specified namespace will be suspended or unsuspended. If the namespace is set to 'all', all
     user namespaces will be affected.
     """
-    validate_env(env)
-    suspend = True if not unsuspend else False
+    _process_services(env, namespace, OperationType.suspend, dryrun, verbose)
+
+
+@app.command()
+@dryrunnable
+def unsuspend_services(
+    env: env_option,
+    namespace: namespace_option,
+    dryrun: dryrun_option = False,
+    verbose: verbose_option = False,
+) -> None:
+    """Unsuspend user services.
+
+    All services in the specified namespace will be unsuspended. If the namespace is set to 'all', all user namespaces
+    will be affected.
+    """
+    _process_services(env, namespace, OperationType.unsuspend, dryrun, verbose)
+
+
+@app.command()
+@dryrunnable
+def prune_services(
+    env: env_option,
+    namespace: namespace_option,
+    dryrun: dryrun_option = False,
+    verbose: verbose_option = False,
+) -> None:
+    """Prune services."""
+    _process_services(env, namespace, OperationType.prune, dryrun, verbose)
+
+
+def _process_services(
+    env: Env, namespace: str, operation: OperationType, dryrun: bool, verbose: bool
+) -> None:
+    """Process user services.
+
+    Processing means either suspending, unsuspending or killing services, possibly based on a time condition.
+    The supplied operation type determines what action to take.
+
+    All services in the specified namespace will be processed. If the namespace is set to 'all', all
+    user namespaces will be affected.
+    """
+    _validate_env(env)
     processed_count = 0
     skipped_count = 0
     namespaces = _get_all_user_namespaces() if namespace == "all" else [namespace]
 
     for ns in namespaces:
-        services = _get_helm_releases(ns)
-        for svc in services:
-            release_name = svc["name"]
-            chart_version = svc["chart_version"]
-            logger.info(
-                f"{'Suspend' if suspend else 'Unsuspend'} {release_name} in namespace {ns}"
-            )
+        # We don't need detailed info such as history for kill operations
+        comprehensive_search = operation not in [OperationType.kill]
+        services = _find_services(ns, verbose, comprehensive=comprehensive_search)
+        if not services:
+            print_err(f"No services found in {ns} namespace")
+            raise typer.Exit(code=1)
+
+        for service in services:
             try:
-                chart_name = _determine_chart_name(svc["name"])
+                action = _actions(service, dryrun, verbose)[operation]
+                res = action()
+                if res.returncode != 0:
+                    skipped_count += 1
+                    print(
+                        red(
+                            f"Error: Could not {operation.value} service {service.name} in namespace {ns}. {res.stderr}"
+                        )
+                    )
+                else:
+                    processed_count += 1
+
             except ValueError as e:
                 print(red(f"{e}. Skipping this service."))
                 skipped_count += 1
                 continue
 
-            res = _run_command(
-                f"helm upgrade {release_name} {chart_name} --reuse-values --set global.suspend={suspend} --version {chart_version} --history-max 0 --timeout 10m --namespace {ns}",
-                dryrun=dryrun,
-                verbose=verbose,
-            )
-            if res[2] != 0:
-                skipped_count += 1
-                print(
-                    red(
-                        f"Error: Could not suspend service {release_name} in namespace {ns}. {res[1]}"
-                    )
-                )
-            else:
-                processed_count += 1
-
     print(
-        f"Suspended {processed_count} services, skipped {skipped_count} (total: {processed_count+skipped_count}) from {len(namespaces)} namespaces"
+        f"{_conjugate(operation, capitalize=True)} {processed_count} services, skipped {skipped_count} (total: {processed_count+skipped_count}) from {len(namespaces)} namespaces"
     )
 
 
-def validate_env(env: Env) -> None:
+def _actions(
+    service: Service, dryrun: bool, verbose: bool
+) -> dict[OperationType, Callable[[], RunResult]]:
+    return {
+        OperationType.suspend: lambda: _suspend(service, dryrun, verbose),
+        OperationType.unsuspend: lambda: _unsuspend(service, dryrun, verbose),
+        OperationType.kill: lambda: _kill(service, dryrun, verbose),
+        OperationType.prune: lambda: _prune(service, dryrun, verbose),
+    }
+
+
+def _suspend(service: Service, dryrun: bool, verbose: bool) -> RunResult:
+    logger.info(f"Suspend {service.name} in namespace {service.namespace}")
+    chart_name = _determine_chart_name(service.name)
+
+    if not service.suspended:
+        return run(
+            f"helm upgrade {service.name} {chart_name} --namespace {service.namespace} --reuse-values --set global.suspend=True --version {service.chart_version} --history-max 0 --timeout 10m",
+            dryrun=dryrun,
+            verbose=verbose,
+        )
+    else:
+        logger.info(
+            f"Ignoring {service.name} in namespace {service.namespace} as it has already been suspended"
+        )
+        return RunResult(stdout="Not suspended", stderr="", returncode=0)
+
+
+def _unsuspend(service: Service, dryrun: bool, verbose: bool) -> RunResult:
+    logger.info(f"Unsuspend {service.name} in namespace {service.namespace}")
+    chart_name = _determine_chart_name(service.name)
+
+    if service.suspended:
+        return run(
+            f"helm upgrade {service.name} {chart_name} --namespace {service.namespace} --reuse-values --set global.suspend=False --version {service.chart_version} --history-max 0 --timeout 10m",
+            dryrun=dryrun,
+            verbose=verbose,
+        )
+    else:
+        logger.info(
+            f"Ignoring {service.name} in namespace {service.namespace} as it is not suspended"
+        )
+        return RunResult(stdout="Not suspended", stderr="", returncode=0)
+
+
+def _kill(service: Service, dryrun: bool, verbose: bool) -> RunResult:
+    logger.info(f"Kill service {service.name} in namespace {service.namespace}")
+    return run(
+        f"helm delete {service.name} --namespace {service.namespace}",
+        dryrun=dryrun,
+        verbose=verbose,
+    )
+
+
+def _prune(
+    service: Service,
+    dryrun: bool,
+    verbose: bool,
+    kill_threshold: int = 168,
+    kill_suspended_threshold: int = 48,
+    suspend_threshold: int = 0,
+) -> RunResult:
+    """
+    Prune services based on a time threshold.
+
+    If a service has been running for more than `kill_threshold' hours, it is killed.
+    If a service has been suspended for more than `kill_suspended_threshold' hours, it is killed.
+    If a service has status 'failed', it is killed.
+    If a
+    :param service:
+    :param dryrun:
+    :param verbose:
+    :param kill_threshold:
+    :param kill_suspended_threshold:
+    :return:
+    """
+    hours_since_started = hours_since(service.created) if service.created else 0
+    hours_since_updated = hours_since(service.updated) if service.updated else 0
+    if service.status == "failed":
+        logger.info(
+            f"Service {service.name} in namespace {service.namespace} has status failed. Terminating..."
+        )
+        return _kill(service, dryrun, verbose)
+
+    if hours_since_started >= kill_threshold:
+        logger.info(
+            f"Service {service.name} in namespace {service.namespace} was started {hours_since_started} hours ago. Terminating..."
+        )
+        return _kill(service, dryrun, verbose)
+    elif service.suspended and hours_since_updated >= kill_suspended_threshold:
+        logger.info(
+            f"Service {service.name} in namespace {service.namespace} was suspended {hours_since_updated} hours ago. Terminating..."
+        )
+        return _kill(service, dryrun, verbose)
+
+    elif hours_since_updated >= suspend_threshold:
+        return _suspend(service, dryrun, verbose)
+
+    else:
+        logger.info(
+            f"Ignoring service {service.name} in namespace {service.namespace} as it was updated less than {suspend_threshold} hours ago"
+        )
+        return RunResult(stdout="Ignored", stderr="", returncode=0)
+
+
+def _validate_env(env: Env) -> None:
     """Validate that the current kubernetes context is a dapla-lab context and matches the specified environment."""
     current_context_name = _get_current_cluster_name()
     if not current_context_name.startswith("gke_dapla-lab-"):
@@ -206,70 +357,81 @@ def validate_env(env: Env) -> None:
 
     if not current_context_name.endswith(env.value):
         print_err(
-            f"Invalid environment {env}. Current context is {current_context_name}. Please switch your kubernetes context."
+            f"Invalid environment {env.value}. Current context is {current_context_name}. Please switch your kubernetes context."
         )
         raise typer.Exit(code=1)
 
 
-def _run_command(
-    command: str, dryrun: bool = False, verbose: bool = False
-) -> tuple[str, str, int]:
-    """Runs a shell command and returns its output and error status."""
-    if verbose:
-        print(grey(f"{'DRYRUN: ' if dryrun else ''}{command}"))
-
-    if dryrun:
-        return "", "", 0
-
-    result = subprocess.run(command, shell=True, text=True, capture_output=True)
-    return result.stdout, result.stderr, result.returncode
-
-
 def _get_all_user_namespaces() -> list[str]:
-    res = _run_command(
+    res = run(
         "kubectl get namespaces --no-headers -o custom-columns=':metadata.name' | grep '^user-'"
     )
-    return res[0].strip().split("\n")
+    return res.stdout.strip().split("\n")
 
 
-def _get_helm_releases(namespace: str) -> list[dict[str, Any]]:
-    res = _run_command(f"helm list --namespace {namespace} --output json")
-    helm_releases: list[dict[str, Any]] = json.loads(res[0])
+def _find_services(
+    namespace: str, verbose: bool, comprehensive: bool = True
+) -> list[Service]:
+    """Find Dapla Lab user services in the specified namespace.
+
+    :param namespace: the k8s namespace to search for services in
+    :param verbose: if True, prints executed commands to stdout
+    :param comprehensive: if True, fetches history and values for each service
+    :return: a list of Service objects
+    """
+    res = run(
+        f"helm list --namespace {namespace} --time-format {dt_format} --output json",
+        verbose=verbose,
+    )
+    helm_releases: list[dict[str, Any]] = json.loads(res.stdout)
 
     for release in helm_releases:
+        release_name = release["name"]
         version = release.get("chart", "").split("-")[-1]
         release["chart_version"] = version
 
-    return helm_releases
+        if comprehensive:
+            history = _get_helm_release_history(release_name, namespace)
+            release["created"] = history[0]["updated"]
+
+            values = _get_helm_release_values(release_name, namespace)
+            release["suspended"] = values["global"]["suspend"]
+
+    services: list[Service] = [Service(**data) for data in helm_releases]
+
+    return services
 
 
-def _get_helm_release_values(helm_release_name: str, namespace: str) -> dict[str, Any]:
-    res = _run_command(
-        f"helm get values {helm_release_name} --namespace {namespace} --output json"
+def _get_helm_release_values(
+    helm_release_name: str, namespace: str, verbose: bool = False
+) -> dict[str, Any]:
+    res = run(
+        f"helm get values {helm_release_name} --namespace {namespace} --output json",
+        verbose=verbose,
     )
-    values: dict[str, Any] = json.loads(res[0])
+    values: dict[str, Any] = json.loads(res.stdout)
+    return values
+
+
+def _get_helm_release_history(
+    release_name: str, namespace: str, verbose: bool = False
+) -> list[dict[str, Any]]:
+    res = run(
+        f"helm history {release_name} --namespace {namespace} --output json",
+        verbose=verbose,
+    )
+    values: list[dict[str, Any]] = json.loads(res.stdout)
     return values
 
 
 def _get_current_cluster_name() -> str:
-    res = _run_command("kubectl config view --minify -o jsonpath='{.clusters[0].name}'")
-    return res[0]
+    res = run("kubectl config view --minify -o jsonpath='{.clusters[0].name}'")
+    return res.stdout
 
 
-def _get_all_services() -> list[dict[str, str]]:
-    all_services = []
-    for ns in _get_all_user_namespaces():
-        services = _get_helm_releases(ns)
-        all_services.extend(services)
-
-    return all_services
-
-
+# TODO: We should retrieve the chart name from the release values/annotations instead of guessing.
 def _determine_chart_name(helm_release_name: str) -> str:
-    """Guess the helm chart name based on the release name.
-
-    TODO: We should retrieve the chart name from the release values/annotations instead of guessing.
-    """
+    """Guess the helm chart name based on the release name."""
     catalogs = {
         "jupyter-playground": "dapla-lab-standard",
         "jupyter": "dapla-lab-standard",
@@ -288,9 +450,19 @@ def _determine_chart_name(helm_release_name: str) -> str:
 
 
 def _assert_successful_command(cmd: str, err_msg: str, success_msg: str | None) -> None:
-    res = _run_command(f"eval {cmd} > /dev/null")
-    if res[2] != 0:
+    res = run(f"eval {cmd} > /dev/null")
+    if res.returncode != 0:
         err.print(f"❌  {red(err_msg)}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=res.returncode)
     if success_msg:
         print(f"✔️ {success_msg}")
+
+
+def _conjugate(operation: OperationType, capitalize: bool = False) -> str:
+    """Conjugate operations into past tense."""
+    if operation.value.endswith("e"):
+        past_tense = operation.value + "d"  # Don't add an extra "e"
+    else:
+        past_tense = operation.value + "ed"
+
+    return past_tense.capitalize() if capitalize else past_tense
