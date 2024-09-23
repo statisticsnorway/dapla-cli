@@ -1,9 +1,6 @@
 import io
 import logging
 
-import pytest
-import typer
-
 from dp import lab
 from dp.lab import Env, Service
 from dp.utils import RunResult, strip_ansi
