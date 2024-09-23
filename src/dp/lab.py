@@ -11,7 +11,7 @@ from rich import print
 from rich.console import Console
 from typer import Typer
 
-from .annotations import dryrunnable
+from .annotations import dryrunnable, ensure_helm_repos_updated
 from .utils import RunResult, green, hours_since, print_err, red, run
 
 app = Typer()
@@ -133,6 +133,25 @@ def kill_service(
     """Kill a service in the specified namespace."""
     _validate_env(env)
     _kill(Service(name=service_name, namespace=namespace), dryrun, verbose)
+
+
+@app.command()
+@dryrunnable
+def suspend_service(
+    service_name: str,
+    env: env_option,
+    namespace: namespace_option,
+    dryrun: dryrun_option = False,
+    verbose: verbose_option = False,
+) -> None:
+    """Suspend a service in the specified namespace."""
+    _validate_env(env)
+    service = _find_service(service_name, namespace, verbose)
+    if not service:
+        print_err(f"Service {service_name} not found in namespace {namespace}")
+        raise typer.Exit(code=1)
+    else:
+        _suspend(service, dryrun, verbose)
 
 
 @app.command()
@@ -362,6 +381,31 @@ def _get_all_user_namespaces() -> list[str]:
     return res.stdout.strip().split("\n")
 
 
+def _find_service(
+    service_name: str,
+    namespace: str = "all",
+    verbose: bool = False,
+    comprehensive: bool = True,
+) -> Service | None:
+    """Find a specific service by name.
+
+    Args:
+        service_name: The name of the service to find.
+        namespace: The namespace to search in. Defaults to 'all' if not specified.
+        verbose: If True, prints executed commands to stdout.
+        comprehensive: If True, also fetches helm history and additional values.
+
+    Returns:
+        The service if found, otherwise None.
+    """
+    for service in _find_services(namespace, verbose, comprehensive):
+        if service.name == service_name:
+            return service
+
+    return None
+
+
+@ensure_helm_repos_updated
 def _find_services(
     namespace: str, verbose: bool, comprehensive: bool = True
 ) -> list[Service]:
@@ -388,7 +432,6 @@ def _find_services(
             release["created"] = history[0]["updated"]
 
             values = _get_helm_release_values(release_name, namespace)
-            print(values)
             release["suspended"] = values.get("global", {}).get("suspend", False)
 
     services: list[Service] = [Service(**data) for data in helm_releases]

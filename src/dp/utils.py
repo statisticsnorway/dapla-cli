@@ -1,9 +1,12 @@
+import importlib.metadata
 import re
 import subprocess
 from datetime import datetime, timezone
 from typing import Any
 
+import requests
 import typer
+from packaging.version import Version
 from pydantic import BaseModel
 from rich import print
 from rich.console import Console
@@ -94,3 +97,29 @@ def assert_successful_command(cmd: str, err_msg: str, success_msg: str | None) -
         raise typer.Exit(code=res.returncode)
     if success_msg:
         print(f"✔️ {success_msg}")
+
+
+def get_current_version() -> Version | None:
+    """Return the app version."""
+    try:
+        return Version(importlib.metadata.version("dapla-cli"))
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
+def get_latest_pypi_version() -> Version | None:
+    """Fetches the latest version of a package from PyPI.
+
+    Returns:
+        str: The latest version of the package, or None if there is an error.
+    """
+    url = "https://pypi.org/pypi/dapla-cli/json"
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+
+        # Parse the response as JSON and return the latest version
+        data = response.json()
+        return Version(data["info"]["version"])
+    except Exception:
+        return None
