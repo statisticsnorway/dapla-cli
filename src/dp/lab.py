@@ -3,7 +3,7 @@ import logging
 from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 import typer
 from pydantic import BaseModel
@@ -400,7 +400,7 @@ def _find_service(
     """
     for service in _find_services(namespace, verbose, comprehensive):
         if service.name == service_name:
-            return service
+            return cast(Service, service)
 
     return None
 
