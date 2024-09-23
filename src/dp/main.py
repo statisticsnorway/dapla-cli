@@ -19,7 +19,7 @@ def version_callback(value: bool) -> None:
     """Print the version."""
     if value:
         try:
-            app_version = importlib.metadata.version("dp")
+            app_version = importlib.metadata.version("dapla-cli")
         except importlib.metadata.PackageNotFoundError:
             app_version = "dev"
         print(f"Dapla CLI {app_version}")
