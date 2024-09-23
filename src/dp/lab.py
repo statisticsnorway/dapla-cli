@@ -215,8 +215,7 @@ def _process_services(
         comprehensive_search = operation not in [OperationType.kill]
         services = _find_services(ns, verbose, comprehensive=comprehensive_search)
         if not services:
-            print_err(f"No services found in {ns} namespace")
-            raise typer.Exit(code=1)
+            logger.info(f"No services found in {ns} namespace")
 
         for service in services:
             try:
@@ -389,7 +388,8 @@ def _find_services(
             release["created"] = history[0]["updated"]
 
             values = _get_helm_release_values(release_name, namespace)
-            release["suspended"] = values["global"]["suspend"]
+            print(values)
+            release["suspended"] = values.get("global", {}).get("suspend", False)
 
     services: list[Service] = [Service(**data) for data in helm_releases]
 

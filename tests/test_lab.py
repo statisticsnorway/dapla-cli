@@ -1,7 +1,5 @@
 import io
-
-import pytest
-import typer
+import logging
 
 from dp import lab
 from dp.lab import Env, Service
@@ -104,18 +102,13 @@ def test_kill_service_dryrun(mocker):
     )
 
 
-def test_kill_services_no_services(mocker):
+def test_kill_services_no_services(mocker, caplog):
     mocker.patch("dp.lab._find_services", return_value=[])
     mocker.patch("dp.lab._validate_env")
 
-    with mocker.patch("sys.stderr", new=io.StringIO()) as mock_stderr:
-        with pytest.raises(typer.Exit) as exc_info:
-            lab.kill_services(
-                env=Env.dev, namespace="some-ns", dryrun=False, verbose=True
-            )
-
-        assert "No services found in some-ns namespace" in mock_stderr.getvalue()
-        assert exc_info.value.exit_code == 1
+    with caplog.at_level(logging.INFO):
+        lab.kill_services(env=Env.dev, namespace="some-ns", dryrun=False, verbose=True)
+        assert "No services found in some-ns namespace" in caplog.text
 
 
 def test_kill_services_with_services(mocker):
