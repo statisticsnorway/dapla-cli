@@ -1,9 +1,12 @@
+import importlib.metadata
 import io
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 import pytest
+import requests
 import typer
+from packaging.version import Version
 from rich.console import Console
 
 from dp import utils
@@ -111,3 +114,43 @@ def test_assert_successful_command_failure(mocker):
         with pytest.raises(typer.Exit):
             utils.assert_successful_command("invalid_command", "Error message", None)
             assert "❌  Error message" in mock_stderr.getvalue()
+
+
+def test_get_current_version_installed(mocker):
+    mocker.patch("importlib.metadata.version", return_value="1.0.0")
+    result = utils.get_current_version()
+    assert result == Version("1.0.0")
+
+
+def test_get_current_version_not_installed(mocker):
+    mocker.patch(
+        "importlib.metadata.version",
+        side_effect=importlib.metadata.PackageNotFoundError,
+    )
+    result = utils.get_current_version()
+    assert result is None
+
+
+def test_get_latest_pypi_version_successful(mocker):
+    mocker.patch(
+        "requests.get",
+        return_value=mocker.Mock(
+            status_code=200, json=lambda: {"info": {"version": "1.0.0"}}
+        ),
+    )
+    result = utils.get_latest_pypi_version()
+    assert result == Version("1.0.0")
+
+
+def test_get_latest_pypi_version_request_failure(mocker):
+    mocker.patch("requests.get", side_effect=requests.RequestException)
+    result = utils.get_latest_pypi_version()
+    assert result is None
+
+
+def test_get_latest_pypi_version_invalid_response(mocker):
+    mocker.patch(
+        "requests.get", return_value=mocker.Mock(status_code=200, json=lambda: {})
+    )
+    result = utils.get_latest_pypi_version()
+    assert result is None
