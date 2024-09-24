@@ -24,3 +24,14 @@ run-isolated: build-docker ## Run Dapla CLI in isolated environment (Docker cont
 .PHONY: run-isolated-dev
 run-isolated-dev: build-docker ## Run Dapla CLI in isolated environment (Docker container) using latest release from local source (in editable mode)
 	docker run -v $(PWD)/:/mnt/dapla-cli -it dapla-cli
+
+.PHONY: release-patch
+release-patch: ## Bump patch version, push new release branch and create PR
+	git checkout main
+	git branch -D release || true
+	poetry version patch
+	git checkout -b release
+	git add pyproject.toml
+	git commit -m "Release version $$(poetry version -s)"
+	git push origin release
+	gh pr create --title "Release v$(poetry version -s)" --body "" --base main --label "skip-changelog"
