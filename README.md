@@ -35,6 +35,20 @@ Install with [pipx] from [pypi]:
 pipx install dapla-cli
 ```
 
+Alternatively you can build `dapla-cli` using the provided nix flake:
+
+```console
+$ nix build .#dapla-cli
+$ ./result/bin/dp --version
+```
+
+or open the provided nix shell:
+
+```console
+$ nix develop .#
+$ dp --version
+```
+
 ## Usage
 
 Please see the [Reference Guide] for details.
