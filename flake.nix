@@ -42,6 +42,8 @@
               furo = null;
             });
           };
+
+        packages.default = self'.packages.dapla-cli;
       };
     };
 }
