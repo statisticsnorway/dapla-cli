@@ -11,7 +11,8 @@ import jwt
 import pyperclip
 import requests
 import typer
-from rich import print, print_json
+from rich import print as rich_print
+from rich import print_json
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
@@ -81,12 +82,12 @@ def logout(env: env_option = Env.prod) -> None:
         }
         response = requests.post(_config(env, "keycloak_url"), data=payload)
         if response.status_code == 200:
-            print("Logged out successfully")
+            rich_print("Logged out successfully")
             config.remove("auth", namespace=env.value)
         else:
-            print(f"Error logging out: {response.status_code} - {response.text}")
+            rich_print(f"Error logging out: {response.status_code} - {response.text}")
     else:
-        print("Already logged out")
+        rich_print("Already logged out")
 
 
 @app.command()
@@ -105,7 +106,8 @@ def show_access_token(
         decoded_token = jwt.decode(access_token, options={"verify_signature": False})
         print_json(json.dumps(decoded_token))
     else:
-        print(access_token)
+        # Use std library python print since the print from Rich inserts undesirable newlines.
+        print(access_token, end="")
         if to_clipboard:
             pyperclip.copy(access_token)
 
@@ -127,7 +129,7 @@ def local_access_token(env: Env, ensure_valid: bool = True) -> str:
     """
     access_token = config.get("auth", "access_token", namespace=env.value)
     if not access_token:
-        print(f"No access token found for {env.value}. Please log in.")
+        rich_print(f"No access token found for {env.value}. Please log in.")
         raise typer.Exit(code=1)
 
     if ensure_valid:
@@ -160,14 +162,18 @@ def _init_device_flow(env: Env) -> dict[str, str]:
         device_code = result["device_code"]
         user_code = result["user_code"]
         verification_uri = result["verification_uri"]
-        print(f"Please visit {verification_uri} and enter the user code: {user_code}")
+        rich_print(
+            f"Please visit {verification_uri} and enter the user code: {user_code}"
+        )
         return {
             "device_code": device_code,
             "user_code": user_code,
             "code_verifier": code_verifier,
         }
     else:
-        print(f"Error initiating device flow: {response.status_code} - {response.text}")
+        rich_print(
+            f"Error initiating device flow: {response.status_code} - {response.text}"
+        )
         raise typer.Exit(code=1)
 
 
@@ -207,7 +213,7 @@ def _poll_for_token(device_code: str, code_verifier: str, env: Env) -> str:
                     value=refresh_token,
                     namespace=env.value,
                 )
-                print(green("OK"))
+                rich_print(green("OK"))
                 return access_token
 
             elif response.status_code == 400:
@@ -224,10 +230,10 @@ def _poll_for_token(device_code: str, code_verifier: str, env: Env) -> str:
                     )
                     time.sleep(POLL_INTERVAL * 1.5)
                 else:
-                    print(red(f"Error: {error}"))
+                    rich_print(red(f"Error: {error}"))
                     raise typer.Exit(code=1)
             else:
-                print(
+                rich_print(
                     red(
                         f"Unexpected response: {response.status_code} - {response.text}"
                     )
@@ -250,7 +256,7 @@ def _refresh_token(env: Env) -> str:
     """Refreshes the access token using the refresh token."""
     refresh_token = config.get("auth", "refresh_token", namespace=env.value)
     if not refresh_token:
-        print("No refresh token found. Please log in.")
+        rich_print("No refresh token found. Please log in.")
         raise typer.Exit(code=1)
 
     payload = {
@@ -281,5 +287,7 @@ def _refresh_token(env: Env) -> str:
         )
         return new_access_token
     else:
-        print(red(f"Error refreshing token: {response.status_code} - {response.text}"))
+        rich_print(
+            red(f"Error refreshing token: {response.status_code} - {response.text}")
+        )
         raise typer.Exit(code=1)
