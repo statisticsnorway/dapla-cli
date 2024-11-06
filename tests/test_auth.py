@@ -48,7 +48,9 @@ def test_show_access_token_prints_token(mocker, capsys):
     mocker.patch("dp.auth.local_access_token", return_value=TEST_TOKEN)
     auth.show_access_token(env=Env.prod)
     auth.local_access_token.assert_called_once_with(Env.prod, ensure_valid=True)
-    assert "\n" not in capsys.readouterr().out.strip()
+    output = capsys.readouterr().out.strip()
+    assert "\n" not in output
+    assert TEST_TOKEN in output
 
 
 def test_show_access_token_decoded(mocker):
