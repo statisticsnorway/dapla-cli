@@ -6,13 +6,15 @@ import typer
 from dp import auth
 from dp.auth import Env
 
+TEST_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
 
 def test_login_successful(mocker):
     mocker.patch(
         "dp.auth._init_device_flow",
         return_value={"device_code": "device_code", "code_verifier": "code_verifier"},
     )
-    mocker.patch("dp.auth._poll_for_token", return_value="access_token")
+    mocker.patch("dp.auth._poll_for_token", return_value=TEST_TOKEN)
     auth.login(env=Env.prod)
     auth._init_device_flow.assert_called_once_with(Env.prod)
     auth._poll_for_token.assert_called_once_with(
@@ -42,28 +44,31 @@ def test_logout_already_logged_out(mocker):
     auth.config.get.assert_called_once_with("auth", "refresh_token", "prod")
 
 
-def test_show_access_token_prints_token(mocker):
-    mocker.patch("dp.auth.local_access_token", return_value="access_token")
+def test_show_access_token_prints_token(mocker, capsys):
+    mocker.patch("dp.auth.local_access_token", return_value=TEST_TOKEN)
     auth.show_access_token(env=Env.prod)
     auth.local_access_token.assert_called_once_with(Env.prod, ensure_valid=True)
+    output = capsys.readouterr().out.strip()
+    assert "\n" not in output
+    assert TEST_TOKEN in output
 
 
 def test_show_access_token_decoded(mocker):
-    mocker.patch("dp.auth.local_access_token", return_value="access_token")
+    mocker.patch("dp.auth.local_access_token", return_value=TEST_TOKEN)
     mocker.patch("dp.auth.jwt.decode", return_value={"decoded": "token"})
     auth.show_access_token(env=Env.prod, decoded=True)
     auth.local_access_token.assert_called_once_with(Env.prod, ensure_valid=True)
     auth.jwt.decode.assert_called_once_with(
-        "access_token", options={"verify_signature": False}
+        TEST_TOKEN, options={"verify_signature": False}
     )
 
 
 def test_show_access_token_to_clipboard(mocker):
-    mocker.patch("dp.auth.local_access_token", return_value="access_token")
+    mocker.patch("dp.auth.local_access_token", return_value=TEST_TOKEN)
     mocker.patch("dp.auth.pyperclip.copy")
     auth.show_access_token(env=Env.prod, to_clipboard=True)
     auth.local_access_token.assert_called_once_with(Env.prod, ensure_valid=True)
-    auth.pyperclip.copy.assert_called_once_with("access_token")
+    auth.pyperclip.copy.assert_called_once_with(TEST_TOKEN)
 
 
 def test_local_access_token_not_found(mocker):
@@ -73,7 +78,7 @@ def test_local_access_token_not_found(mocker):
 
 
 def test_local_access_token_refresh_needed(mocker):
-    mocker.patch("dp.auth.config.get", return_value="access_token")
+    mocker.patch("dp.auth.config.get", return_value=TEST_TOKEN)
     mocker.patch("dp.auth.jwt.decode", return_value={"exp": time.time() - 100})
     mocker.patch("dp.auth._refresh_token", return_value="new_access_token")
     token = auth.local_access_token(env=Env.prod)
