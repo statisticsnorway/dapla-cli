@@ -5,18 +5,10 @@ from typing import Annotated
 import requests
 import typer
 
-from .auth import local_access_token
+from .auth import Env, local_access_token
 
 app = typer.Typer()
 logger = logging.getLogger(__name__)
-
-
-class Env(str, Enum):
-    """Denotes the environment to operate on."""
-
-    prod = "prod"
-    test = "test"
-
 
 env_config = {
     Env.prod: {"team_api_url": "https://dapla-team-api-v2.prod-bip-app.ssb.no"},
