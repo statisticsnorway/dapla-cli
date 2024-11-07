@@ -3,7 +3,7 @@ from typing import Annotated
 
 import typer
 
-from . import auth, lab
+from . import auth, lab, team_api
 from .annotations import check_version
 from .utils import get_current_version
 
@@ -14,6 +14,7 @@ logging.basicConfig(
 app = typer.Typer()
 app.add_typer(auth.app, name="auth", help="Authenticate dp with Keycloak")
 app.add_typer(lab.app, name="lab", help="Interact with Dapla Lab services")
+app.add_typer(team_api.app, name="team-api", help="Interact with Dapla Team API")
 
 
 def version_callback(value: bool) -> None:
