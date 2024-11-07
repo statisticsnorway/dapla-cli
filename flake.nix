@@ -27,7 +27,11 @@
       }: {
         devShells.default = pkgs.mkShell {
           name = "dapla-lab";
-          packages = [self'.packages.dapla-cli];
+          packages = with pkgs; [
+            python3
+            poetry
+            ruff-lsp
+          ];
         };
         formatter = pkgs.alejandra;
         packages.dapla-cli = let
