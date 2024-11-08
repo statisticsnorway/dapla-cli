@@ -475,6 +475,7 @@ def _determine_chart_name(helm_release_name: str) -> str:
         "vscode-python": "dapla-lab-standard",
         "rstudio": "dapla-lab-standard",
         "datadoc": "dapla-lab-standard",
+        "jdemetra": "dapla-lab-standard",
     }
 
     for service_name, catalog in catalogs.items():
