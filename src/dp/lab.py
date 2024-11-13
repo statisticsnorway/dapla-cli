@@ -471,6 +471,7 @@ def _determine_chart_name(helm_release_name: str) -> str:
     """Guess the helm chart name based on the release name."""
     catalogs = {
         "jupyter-playground": "dapla-lab-standard",
+        "jupyter-pyspark": "dapla-lab-standard",
         "jupyter": "dapla-lab-standard",
         "vscode-python": "dapla-lab-standard",
         "rstudio": "dapla-lab-standard",
