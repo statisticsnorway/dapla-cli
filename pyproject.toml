@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "dapla-cli"
-version = "0.1.5"
+version = "0.2.0"
 description = "Dapla CLI"
-authors = ["Team Statistikktjenester <kons_schu@ssb.no>"]
+authors = ["Team Statistikktjenester"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/statisticsnorway/dapla-cli"
