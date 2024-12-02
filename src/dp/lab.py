@@ -7,7 +7,7 @@ from typing import Annotated, Any, cast
 
 import typer
 from pydantic import BaseModel
-from rich import print
+from rich import print as rich_print
 from rich.console import Console
 from typer import Typer
 
@@ -104,9 +104,9 @@ def doctor() -> None:
         )
         _assert_successful_command("which helm", "helm is not installed", "helm")
     except ValueError as e:
-        print(red(e))
+        rich_print(red(e))
 
-    print(green("You're aye okay 🎉"))
+    rich_print(green("You're aye okay 🎉"))
 
 
 @app.command()
@@ -118,7 +118,7 @@ def list_services(
     """List all services in the specified namespace."""
     _validate_env(env)
     res = run(f"helm list --namespace {namespace}", verbose=verbose)
-    print(res.stdout)
+    rich_print(res.stdout)
 
 
 @app.command()
@@ -242,7 +242,7 @@ def _process_services(
                 res = action()
                 if res.returncode != 0:
                     skipped_count += 1
-                    print(
+                    rich_print(
                         red(
                             f"Error: Could not {operation.value} service {service.name} in namespace {ns}. {res.stderr}"
                         )
@@ -251,11 +251,11 @@ def _process_services(
                     processed_count += 1
 
             except ValueError as e:
-                print(red(f"{e}. Skipping this service."))
+                rich_print(red(f"{e}. Skipping this service."))
                 skipped_count += 1
                 continue
 
-    print(
+    rich_print(
         f"{_conjugate(operation, capitalize=True)} {processed_count} services, skipped {skipped_count} (total: {processed_count+skipped_count}) from {len(namespaces)} namespaces"
     )
 
@@ -494,7 +494,7 @@ def _assert_successful_command(cmd: str, err_msg: str, success_msg: str | None) 
         err.print(f"❌  {red(err_msg)}")
         raise typer.Exit(code=res.returncode)
     if success_msg:
-        print(f"✔️ {success_msg}")
+        rich_print(f"✔️ {success_msg}")
 
 
 def _conjugate(operation: OperationType, capitalize: bool = False) -> str:
