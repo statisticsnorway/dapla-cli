@@ -10,8 +10,8 @@ app = typer.Typer()
 logger = logging.getLogger(__name__)
 
 env_config = {
-    Env.prod: {"team_api_url": "https://dapla-team-api-v2.prod-bip-app.ssb.no"},
-    Env.test: {"team_api_url": "https://dapla-team-api-v2.staging-bip-app.ssb.no"},
+    Env.prod: {"team_api_url": "https://dapla-team-api.intern.ssb.no/"},
+    Env.test: {"team_api_url": "https://dapla-team-api.intern.test.ssb.no/"},
 }
 
 env_option = Annotated[
