@@ -5,7 +5,7 @@ from functools import wraps
 from typing import Any
 
 import typer
-from rich import print
+from rich import print as rich_print
 
 from . import config
 from .utils import get_current_version, get_latest_pypi_version, print_err, red, run
@@ -23,7 +23,7 @@ def dryrunnable(f: Callable[..., Any]) -> Callable[..., Any]:
         dryrun = kwargs.get("dryrun", False)
 
         if dryrun:
-            print(red("Dry run enabled. No state will be mutated."))
+            rich_print(red("Dry run enabled. No state will be mutated."))
 
         return f(*args, **kwargs)
 
@@ -74,7 +74,7 @@ def check_version(f: Callable[..., Any]) -> Callable[..., Any]:
 
             if current_version and latest_pypi_version:
                 if current_version >= latest_pypi_version:
-                    print(
+                    rich_print(
                         f"A new version is available: {latest_pypi_version} (Installed: {current_version})"
                     )
 

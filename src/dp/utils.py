@@ -8,7 +8,7 @@ import requests
 import typer
 from packaging.version import Version
 from pydantic import BaseModel
-from rich import print
+from rich import print as rich_print
 from rich.console import Console
 from typer import Typer
 
@@ -69,7 +69,7 @@ def run(command: str, dryrun: bool = False, verbose: bool = False) -> RunResult:
         RunResult: The result of the command.
     """
     if verbose:
-        print(grey(f"{'DRYRUN: ' if dryrun else ''}{command}"))
+        rich_print(grey(f"{'DRYRUN: ' if dryrun else ''}{command}"))
 
     if dryrun:
         return RunResult(stdout="", stderr="", returncode=0)
@@ -96,7 +96,7 @@ def assert_successful_command(cmd: str, err_msg: str, success_msg: str | None) -
         err.print(f"❌  {red(err_msg)}")
         raise typer.Exit(code=res.returncode)
     if success_msg:
-        print(f"✔️ {success_msg}")
+        rich_print(f"✔️ {success_msg}")
 
 
 def get_current_version() -> Version | None:
