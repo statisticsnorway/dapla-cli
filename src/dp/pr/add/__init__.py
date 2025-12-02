@@ -1,1 +1,1 @@
-"""Command for adding existing PR´s to a new state."""
+"""Command for adding existing PRs to a new state."""

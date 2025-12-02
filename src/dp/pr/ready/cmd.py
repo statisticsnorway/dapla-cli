@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import typer
-from rich import print  # noqa: A004
+from rich import print
 
 from ..ready.generate_state import generate
 
@@ -12,7 +12,7 @@ from ..ready.generate_state import generate
 # - File path
 # - Run name
 def ready(
-    folder_path: Path | None = typer.Option(
+    folder_path: Path | None = typer.Option(  # noqa: B008
         None,
         "--folder-path",
         "-f",

@@ -1,7 +1,7 @@
 """Probes repositories for 'atlantis apply'."""
 
 from github.PullRequest import PullRequest
-from rich import print  # noqa: A004
+from rich import print
 
 from ..batch_handler import batch_handler
 from ..const import RepoState, State, Status

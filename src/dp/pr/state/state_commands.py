@@ -4,7 +4,7 @@ import sys
 from typing import Any
 
 import questionary
-from rich import print  # noqa: A004
+from rich import print
 from rich.style import Style
 from rich.table import Table
 from rich.text import Text

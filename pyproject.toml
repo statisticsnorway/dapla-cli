@@ -119,6 +119,7 @@ select = [
     "RUF", # the ruff developer's own rules
 ]
 ignore = [
+    "A004",   # Allow shadowing of python builtins like 'print'.
     "ANN101", # Supress missing-type-self.
     "ANN102", # Supress missing-type-cls.
     "ANN202", # Don't requiere return type annotation for private functions.

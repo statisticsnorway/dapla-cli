@@ -8,7 +8,7 @@ from typing import Final
 import questionary
 from google.cloud import storage  # type: ignore
 from prompt_toolkit.formatted_text import FormattedText
-from rich import print  # noqa: A004
+from rich import print
 
 from ..const import BATCH_PROJECT_ID, STATE_BUCKET_NAME_URI, State, StateObjectName
 

@@ -9,7 +9,7 @@ import questionary
 import yaml
 from git import Repo
 from github.PullRequest import PullRequest
-from rich import print  # noqa: A004
+from rich import print
 
 from dp.pr.probe.probe_workflows import probe_workflows
 from dp.pr.rich_check import SKIPPING, RichWarning
@@ -70,6 +70,9 @@ def _generate_state_data_from_dapla_team_repo(state_name: str) -> State:
 
     def _get_team_iac_repos() -> dict[str, str]:
         """Get the IAC repository names for all teams in the terraform-ssb-dapla-teams repository.
+
+        Raises:
+            ValueError: If a team has multiple team.yaml files.
 
         Returns:
             Dict[str, str]: A dictionary mapping team names to a tuple of 1) repository names and 2) newest template pull request

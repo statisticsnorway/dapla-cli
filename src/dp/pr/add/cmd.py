@@ -1,11 +1,11 @@
-"""Functions for creating state file for existing PR´s."""
+"""Functions for creating state file for existing PRs."""
 
 import datetime
 import re
 import sys
 
 import typer
-from rich import print  # noqa: A004
+from rich import print
 
 from ..const import (
     STATE_BUCKET_NAME_URI,
@@ -18,7 +18,7 @@ from ..const import (
 from ..state.state_utils import state_object_handler
 
 app = typer.Typer(
-    name="add", help="Create state file for existing PR´s", no_args_is_help=True
+    name="add", help="Create state file for existing PRs", no_args_is_help=True
 )
 
 
@@ -28,13 +28,13 @@ def urls(
         "update/template",
         "--target-branch-name",
         "-tbn",
-        help="Branch name used in PR´s",
+        help="Branch name used in PRs",
     ),
-    pr_urls: list[str] = typer.Argument(
+    pr_urls: list[str] = typer.Argument(  # noqa: B008
         None, help="List of PR urls to create state file for."
-    ),  # noqa: B008
+    ),
 ) -> None:
-    """Creates a state for a list of existing PR´s."""
+    """Creates a state for a list of existing PRs."""
     if len(pr_urls) == 0:
         print("No repository specified.")
         sys.exit(1)

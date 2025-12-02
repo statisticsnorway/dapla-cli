@@ -4,7 +4,7 @@ import sys
 
 import questionary
 from github.Organization import Organization
-from rich import print  # noqa: A004
+from rich import print
 
 from ..batch_handler import batch_handler
 from ..const import RepoState, State
