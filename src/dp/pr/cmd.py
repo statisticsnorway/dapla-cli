@@ -20,7 +20,8 @@ app = typer.Typer(no_args_is_help=True)
 
 # Remove gcloud warnings under development
 warnings.filterwarnings(
-    "ignore", message="Your application has authenticated using end user credentials from Google Cloud SDK without a quota project."
+    "ignore",
+    message="Your application has authenticated using end user credentials from Google Cloud SDK without a quota project.",
 )
 
 
@@ -36,7 +37,7 @@ app.command()(merge)
 app.command()(apply)
 app.command()(plan)
 app.command()(ready)
-#app.add_typer(janitor.app)
+# app.add_typer(janitor.app)
 app.add_typer(state)
 app.add_typer(probe)
-#app.add_typer(add)
+# app.add_typer(add)

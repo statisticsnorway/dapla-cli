@@ -1,4 +1,5 @@
 """Git functionality."""
+
 import logging
 import subprocess
 
@@ -94,7 +95,9 @@ def get_repo(repo_name: str, gh_org: Organization | None = None) -> Repository:
     return gh_org.get_repo(repo_name)
 
 
-def get_pr(pr_number: int | None, repo_name: str, gh_org: Organization | None = None) -> PullRequest | None:
+def get_pr(
+    pr_number: int | None, repo_name: str, gh_org: Organization | None = None
+) -> PullRequest | None:
     """Returns a PR given a PR number and a repository."""
     if pr_number is None:
         console.log(RichFailure(message="PR number was not set in the state file"))
@@ -110,7 +113,9 @@ def get_pr(pr_number: int | None, repo_name: str, gh_org: Organization | None = 
         console.log(SKIPPING)
         return None
     except TypeError:
-        console.log(RichFailure(message="PR number was not registered in the state file"))
+        console.log(
+            RichFailure(message="PR number was not registered in the state file")
+        )
         console.log(SKIPPING)
         return None
 
@@ -122,12 +127,17 @@ def get_commit(sha: str, repo_name: str, gh_org: Organization | None = None) -> 
     repo: Repository = gh_org.get_repo(repo_name)
     return repo.get_commit(sha)
 
-def get_last_open_pr_for_user_and_title(repo_name: str, user: str, title: str) -> PullRequest | None:
+
+def get_last_open_pr_for_user_and_title(
+    repo_name: str, user: str, title: str
+) -> PullRequest | None:
     """Gets the last opened PR in a given repo by a given user and title."""
     repo = get_repo(repo_name)
-    pulls = repo.get_pulls(state="open", sort="created", direction="desc", base=repo.default_branch)
+    pulls = repo.get_pulls(
+        state="open", sort="created", direction="desc", base=repo.default_branch
+    )
     for pr in pulls:
         if pr.user.login == user and title == pr.title:
             return pr
-        
+
     return None

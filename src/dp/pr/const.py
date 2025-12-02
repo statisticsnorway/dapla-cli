@@ -40,6 +40,7 @@ class PrMetadata(BaseModel):
 
 class WorkflowStatus(BaseModel):
     """Status of stages in the workflow for a single repo."""
+
     opened: Status = Status.NOT_STARTED
     checks: Status = Status.NOT_STARTED
     approved: Status = Status.NOT_STARTED
@@ -50,7 +51,7 @@ class WorkflowStatus(BaseModel):
 class RepoState(BaseModel):
     """The state of a single repo."""
 
-    name: str # name of the repo, e.g. "dapla-stat-iac"
+    name: str  # name of the repo, e.g. "dapla-stat-iac"
     pr: PrMetadata
     workflow: WorkflowStatus
 

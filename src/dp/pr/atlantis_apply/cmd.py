@@ -1,4 +1,5 @@
 """Deploy infrastructure changes by commenting 'atlantis apply' on PRs."""
+
 import sys
 
 from rich import print
@@ -13,5 +14,9 @@ def apply() -> None:
         atlantis_apply(state)
     else:
         sys.exit(1)
-    print("\n[yellow] Hint: You can use 'dpteam pr probe apply' to see the status of Atlantis apply before attempting a merge.")
-    print("[yellow]Next step: Perhaps you would want to run 'dpteam pr merge' when the applies are successful?")
+    print(
+        "\n[yellow] Hint: You can use 'dpteam pr probe apply' to see the status of Atlantis apply before attempting a merge."
+    )
+    print(
+        "[yellow]Next step: Perhaps you would want to run 'dpteam pr merge' when the applies are successful?"
+    )

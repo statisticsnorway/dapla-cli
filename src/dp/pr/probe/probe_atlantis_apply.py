@@ -20,7 +20,7 @@ def probe_atlantis_apply(state: State) -> None:
 
 
 def _do_probe_atlantis_apply(repo: RepoState, pr: PullRequest) -> None:
-    """Probes atlantis apply for a single repository."""    
+    """Probes atlantis apply for a single repository."""
     # here, we should ideally get the workflow ID and use that instead of a comment
     # however, this is not too simple with the GitHub Python library
     # https://stackoverflow.com/questions/75063703/github-api-find-status-of-required-checks-on-a-pull-request-towards-protected-b

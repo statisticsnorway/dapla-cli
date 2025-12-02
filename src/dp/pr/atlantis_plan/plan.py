@@ -15,7 +15,11 @@ def atlantis_plan(state: State) -> None:
     # probe_workflows(state)
 
     print("\n\n[cyan]Commenting 'atlantis plan' in unplanned repositories")
-    valid_repos = [r for r in state.repos.values() if r.workflow.checks == Status.FAIL or r.workflow.atlantis_apply == Status.FAIL]
+    valid_repos = [
+        r
+        for r in state.repos.values()
+        if r.workflow.checks == Status.FAIL or r.workflow.atlantis_apply == Status.FAIL
+    ]
     for repo in valid_repos:
         _do_atlantis_plan(repo)
 

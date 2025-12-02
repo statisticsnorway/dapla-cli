@@ -6,9 +6,9 @@ import sys
 from typing import Final
 
 import questionary
-from google.cloud import storage
+from google.cloud import storage  # type: ignore
 from prompt_toolkit.formatted_text import FormattedText
-from rich import print  #noqa: A004
+from rich import print  # noqa: A004
 
 from ..const import BATCH_PROJECT_ID, STATE_BUCKET_NAME_URI, State, StateObjectName
 
@@ -35,7 +35,9 @@ class StateObjectHandler:
     def get_bucket(self) -> storage.Bucket:
         """Return a bucket object."""
         if self.bucket is None:
-            self.bucket = self.get_client().bucket(bucket_name=self.bucket_name, user_project=self.user_project)
+            self.bucket = self.get_client().bucket(
+                bucket_name=self.bucket_name, user_project=self.user_project
+            )
         return self.bucket
 
     def get_user_state(self) -> State | None:
@@ -66,14 +68,28 @@ class StateObjectHandler:
         """Fetch a list of blobs from a bucket."""
         blobs = self.get_bucket().list_blobs()
         sorted_blobs = sorted(blobs, key=lambda b: b.updated, reverse=True)
-        batch_blobs = [f"{blob.name}, {blob.updated.replace(microsecond=0)}" for blob in sorted_blobs]
+        batch_blobs = [
+            f"{blob.name}, {blob.updated.replace(microsecond=0)}"
+            for blob in sorted_blobs
+        ]
 
         if not show_other_users:
             result = subprocess.run(
-                ["gcloud", "config", "list", "account", "--format", "value(core.account)"], stdout=subprocess.PIPE, check=True
+                [
+                    "gcloud",
+                    "config",
+                    "list",
+                    "account",
+                    "--format",
+                    "value(core.account)",
+                ],
+                stdout=subprocess.PIPE,
+                check=True,
             )
             run_invoker = result.stdout.decode().strip().replace("@ssb.no", "")
-            batch_blobs = [blob_data for blob_data in batch_blobs if run_invoker in blob_data]
+            batch_blobs = [
+                blob_data for blob_data in batch_blobs if run_invoker in blob_data
+            ]
 
         return batch_blobs
 
@@ -82,7 +98,9 @@ class StateObjectHandler:
         batch_blobs = self.list_blobs(show_other_users)
 
         if batch_blobs is None or len(batch_blobs) == 0:
-            print("No state-files were found. Please create a new state-file with 'dp batch ready'.")
+            print(
+                "No state-files were found. Please create a new state-file with 'dp batch ready'."
+            )
             sys.exit(1)
 
         if len(batch_blobs) == 1:

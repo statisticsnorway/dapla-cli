@@ -22,7 +22,7 @@ def atlantis_apply(state: State) -> None:  # noqa: 3901
         sys.exit(1)
 
     print("\n\n[cyan]Commenting 'atlantis apply' in repositories")
-    
+
     for repo in state.repos.values():
         print(f"[bold magenta]{repo.name}")
         _do_atlantis_apply(repo)
@@ -37,9 +37,13 @@ def _do_atlantis_apply(repo: RepoState) -> None:
         repo.workflow.atlantis_apply = Status.STARTED
         print(RichSuccess(message="Atlantis apply comment created"))
 
+
 def _should_run_atlantis_apply(repo: RepoState) -> bool:
     """Checks whether atlantis apply should be run."""
-    if repo.workflow.checks == Status.NOT_STARTED or repo.workflow.checks == Status.FAIL:
+    if (
+        repo.workflow.checks == Status.NOT_STARTED
+        or repo.workflow.checks == Status.FAIL
+    ):
         print(RichWarning(message="Checks failed or haven't been recorded for PR"))
         print(SKIPPING)
         return False
@@ -51,9 +55,17 @@ def _should_run_atlantis_apply(repo: RepoState) -> bool:
 
     match repo.workflow.atlantis_apply:
         case Status.FAIL:
-            print(RichWarning(message="Apply has been ran previously but failed, commenting apply again"))
+            print(
+                RichWarning(
+                    message="Apply has been ran previously but failed, commenting apply again"
+                )
+            )
         case Status.STARTED:
-            print(RichWarning(message="Have commented 'atlantis apply' previously, but no response by atlantis has been recorded."))
+            print(
+                RichWarning(
+                    message="Have commented 'atlantis apply' previously, but no response by atlantis has been recorded."
+                )
+            )
             print(SKIPPING)
             return False
         case Status.SUCCESS:

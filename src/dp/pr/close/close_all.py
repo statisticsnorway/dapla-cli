@@ -18,7 +18,9 @@ def close_all(state: State, keep_remote_branches: bool) -> None:
     """Closes all opened PRs in state file."""
     print(RichWarning(message="The following pull requests will be closed:"))
     show_state(state)
-    answer = questionary.confirm("Are you sure you want to close all listed pull requests?").ask()
+    answer = questionary.confirm(
+        "Are you sure you want to close all listed pull requests?"
+    ).ask()
     if not answer:
         sys.exit(1)
 

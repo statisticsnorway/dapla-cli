@@ -19,7 +19,7 @@ def merge_all(state: State, override: bool) -> None:  # noqa: 3901
     answer = questionary.confirm("Do you want to proceed with merge?").ask()
     if not answer:
         sys.exit(1)
-        
+
     """
     valid_repos = [
         r for r in state.repos.values() if r.workflow.merged == Status.NOT_STARTED and r.workflow.atlantis_apply == Status.STARTED

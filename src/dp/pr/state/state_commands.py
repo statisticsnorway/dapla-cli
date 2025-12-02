@@ -23,7 +23,9 @@ def remove_state(state_object_name: StateObjectName) -> None:
     if state_object_name is None:
         sys.exit(0)
 
-    confirm = questionary.confirm(f"Are you sure you want to delete the statefile {state_object_name}?").ask()
+    confirm = questionary.confirm(
+        f"Are you sure you want to delete the statefile {state_object_name}?"
+    ).ask()
     if not confirm:
         sys.exit(1)
 
@@ -39,7 +41,9 @@ def show_state(state: State, repo_name: str | None = None) -> None:
     if repo_name is not None:
         # The user wishes to print one specific repo
         if repo_name not in state.repos.keys():
-            print("The provided repository ({name}) does not exist in the selected state file.")
+            print(
+                "The provided repository ({name}) does not exist in the selected state file."
+            )
             sys.exit(0)
         repo_list = [repo_name]
     else:
