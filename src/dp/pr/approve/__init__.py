@@ -1,0 +1,1 @@
+"""Approve PRs command group."""
