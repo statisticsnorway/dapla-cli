@@ -64,7 +64,7 @@ def test_logout_already_logged_out(mocker, client: str):
     else:
         auth.logout(env=Env.prod)
     auth.config.get.assert_called_once_with(
-        "auth", "refresh_token", namespace=f"{DAPLA_CLI_CLIENT_ID}-{Env.prod.value}"
+        "auth", "refresh_token", namespace=f"{client}-{Env.prod.value}"
     )
 
 

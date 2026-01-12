@@ -101,7 +101,7 @@ def logout(
             "refresh_token": refresh_token,
         }
         response = requests.post(
-            _get_keycloak_setting(env.value, "keycloak_url"), data=payload
+            _get_keycloak_setting(env, "keycloak_url"), data=payload
         )
         if response.status_code == 200:
             rich_print("Logged out successfully")
@@ -142,6 +142,7 @@ def local_access_token(env: Env, client: str, ensure_valid: bool = True) -> str:
 
     Args:
         env: The environment to get the access token for.
+        client: The Keycloak client to get the access token for.
         ensure_valid: If True, the token is refreshed (if needed) before returning it.
 
     Returns:
@@ -175,7 +176,7 @@ def _init_device_flow(env: Env, client: str) -> dict[str, str]:
         "code_challenge_method": "S256",
         "code_challenge": code_challenge,
     }
-    device_auth_url = f"{_get_keycloak_setting(env.value, 'keycloak_url')}/realms/ssb/protocol/openid-connect/auth/device"
+    device_auth_url = f"{_get_keycloak_setting(env, 'keycloak_url')}/realms/ssb/protocol/openid-connect/auth/device"
     response = requests.post(device_auth_url, data=payload)
 
     if response.status_code == 200:
@@ -215,7 +216,7 @@ def _poll_for_token(device_code: str, code_verifier: str, env: Env, client: str)
                 "code_verifier": code_verifier,
             }
 
-            token_url = f"{_get_keycloak_setting(env.value, 'keycloak_url')}/realms/ssb/protocol/openid-connect/token"
+            token_url = f"{_get_keycloak_setting(env, 'keycloak_url')}/realms/ssb/protocol/openid-connect/token"
             response = requests.post(token_url, data=payload)
 
             if response.status_code == 200:
@@ -288,7 +289,7 @@ def _refresh_token(env: Env, client: str) -> str:
         "refresh_token": refresh_token,
     }
     response = requests.post(
-        f"{_get_keycloak_setting(env.value, 'keycloak_url')}/realms/ssb/protocol/openid-connect/token",
+        f"{_get_keycloak_setting(env, 'keycloak_url')}/realms/ssb/protocol/openid-connect/token",
         data=payload,
     )
 

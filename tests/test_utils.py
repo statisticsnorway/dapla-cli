@@ -30,7 +30,7 @@ def test_print_err() -> None:
 
 
 def test_strip_ansi_removes_escape_sequences():
-    text_with_ansi = "\x1B[31mHello World\x1B[0m"
+    text_with_ansi = "\x1b[31mHello World\x1b[0m"
     result = utils.strip_ansi(text_with_ansi)
     assert result == "Hello World"
 
@@ -42,7 +42,7 @@ def test_strip_ansi_no_escape_sequences():
 
 
 def test_strip_ansi_mixed_content():
-    mixed_text = "Hello \x1B[31mWorld\x1B[0m!"
+    mixed_text = "Hello \x1b[31mWorld\x1b[0m!"
     result = utils.strip_ansi(mixed_text)
     assert result == "Hello World!"
 
