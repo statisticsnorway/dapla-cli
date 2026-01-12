@@ -4,7 +4,7 @@ from typing import Annotated
 import requests
 import typer
 
-from .auth import Env, local_access_token
+from .auth import DAPLA_CLI_CLIENT_ID, Env, local_access_token
 
 app = typer.Typer()
 logger = logging.getLogger(__name__)
@@ -31,6 +31,8 @@ def get(
     """Make an authenticated GET request to the dapla-team-api."""
     resp = requests.get(
         env_config[env]["team_api_url"] + path,
-        headers={"Authorization": f"Bearer {local_access_token(env)}"},
+        headers={
+            "Authorization": f"Bearer {local_access_token(env, client=DAPLA_CLI_CLIENT_ID)}"
+        },
     )
     print(resp.text)

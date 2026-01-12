@@ -51,6 +51,50 @@ $ dp --version
 
 ## Usage
 
+Starting point: `dp --help`
+
+### Auth
+
+This tool uses a device flow to authenticate against a Keycloak client.
+
+#### Keycloak clients
+
+By default it will use a client called `dapla-cli`, but this may be customized by providing a value `--client my-client`.
+
+Any client used by this tool needs to have the `device` flow activated. [Refer here for an example client configuration](https://github.com/statisticsnorway/keycloak-iac/blob/21f694d74acbdadad0b9cacd4e967a7af624d4fd/clients/prod/dapla-stat/dapla-cli.pkl#L7).
+
+#### Login
+
+Run the command and then follow the instructions to
+
+```shell
+dp auth login
+```
+
+```shell
+dp auth login --client my-client --env test
+```
+
+#### Show token
+
+Once logged in, the access token can be accessed.
+
+```shell
+dp auth show-access-token
+```
+
+```shell
+dp auth show-access-token --client my-client --env test --to-clipboard
+```
+
+#### Logout
+
+```shell
+dp auth logout
+```
+
+### API reference
+
 Please see the [Reference Guide] for details.
 
 ## Development
