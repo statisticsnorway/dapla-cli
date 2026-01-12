@@ -6,55 +6,74 @@ import typer
 from dp import auth
 from dp.auth import DAPLA_CLI_CLIENT_ID, Env
 
+TEST_ALTERNATIVE_CLIENT_ID = "alternative"
 TEST_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
 
-def test_login_successful(mocker):
+@pytest.mark.parametrize(("client"), [DAPLA_CLI_CLIENT_ID, TEST_ALTERNATIVE_CLIENT_ID])
+def test_login_successful(mocker, client: str):
     mocker.patch(
         "dp.auth._init_device_flow",
         return_value={"device_code": "device_code", "code_verifier": "code_verifier"},
     )
     mocker.patch("dp.auth._poll_for_token", return_value=TEST_TOKEN)
-    auth.login(env=Env.prod)
-    auth._init_device_flow.assert_called_once_with(Env.prod, DAPLA_CLI_CLIENT_ID)
+    if client != DAPLA_CLI_CLIENT_ID:
+        auth.login(env=Env.prod, client=client)
+    else:
+        auth.login(env=Env.prod)
+    auth._init_device_flow.assert_called_once_with(Env.prod, client)
     auth._poll_for_token.assert_called_once_with(
-        "device_code", "code_verifier", Env.prod, DAPLA_CLI_CLIENT_ID
+        "device_code", "code_verifier", Env.prod, client
     )
 
 
-def test_login_device_flow_error(mocker):
+@pytest.mark.parametrize(("client"), [DAPLA_CLI_CLIENT_ID, TEST_ALTERNATIVE_CLIENT_ID])
+def test_login_device_flow_error(mocker, client: str):
     mocker.patch("dp.auth._init_device_flow", side_effect=typer.Exit(code=1))
     with pytest.raises(typer.Exit):
-        auth.login(env=Env.prod)
+        if client != DAPLA_CLI_CLIENT_ID:
+            auth.login(env=Env.prod, client=client)
+        else:
+            auth.login(env=Env.prod)
 
 
-def test_logout_successful(mocker):
+@pytest.mark.parametrize(("client"), [DAPLA_CLI_CLIENT_ID, TEST_ALTERNATIVE_CLIENT_ID])
+def test_logout_successful(mocker, client: str):
     mocker.patch("dp.auth.config.get", return_value="refresh_token")
     mocker.patch("dp.auth.requests.post", return_value=mocker.Mock(status_code=200))
     mocker.patch("dp.auth.config.remove")
-    auth.logout(env=Env.prod)
+
+    if client != DAPLA_CLI_CLIENT_ID:
+        auth.logout(env=Env.prod, client=client)
+    else:
+        auth.logout(env=Env.prod)
     auth.config.get.assert_called_once_with(
-        "auth", "refresh_token", namespace=f"{DAPLA_CLI_CLIENT_ID}-{Env.prod.value}"
+        "auth", "refresh_token", namespace=f"{client}-{Env.prod.value}"
     )
     auth.requests.post.assert_called_once()
     auth.config.remove.assert_called_once_with(
-        "auth", namespace=f"{DAPLA_CLI_CLIENT_ID}-{Env.prod.value}"
+        "auth", namespace=f"{client}-{Env.prod.value}"
     )
 
 
-def test_logout_already_logged_out(mocker):
+@pytest.mark.parametrize(("client"), [DAPLA_CLI_CLIENT_ID, TEST_ALTERNATIVE_CLIENT_ID])
+def test_logout_already_logged_out(mocker, client: str):
     mocker.patch("dp.auth.config.get", return_value=None)
-    auth.logout(env=Env.prod)
+    if client != DAPLA_CLI_CLIENT_ID:
+        auth.logout(env=Env.prod, client=client)
+    else:
+        auth.logout(env=Env.prod)
     auth.config.get.assert_called_once_with(
         "auth", "refresh_token", namespace=f"{DAPLA_CLI_CLIENT_ID}-{Env.prod.value}"
     )
 
 
-def test_show_access_token_prints_token(mocker, capsys):
+@pytest.mark.parametrize(("client"), [DAPLA_CLI_CLIENT_ID, TEST_ALTERNATIVE_CLIENT_ID])
+def test_show_access_token_prints_token(mocker, capsys, client: str):
     mocker.patch("dp.auth.local_access_token", return_value=TEST_TOKEN)
-    auth.show_access_token(env=Env.prod)
+    auth.show_access_token(env=Env.prod, client=client)
     auth.local_access_token.assert_called_once_with(
-        env=Env.prod, client=DAPLA_CLI_CLIENT_ID, ensure_valid=True
+        env=Env.prod, client=client, ensure_valid=True
     )
     output = capsys.readouterr().out.strip()
     assert "\n" not in output
