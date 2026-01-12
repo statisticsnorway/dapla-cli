@@ -46,12 +46,19 @@ keycloak_settings = {
 # Common options
 env_option = Annotated[
     Env,
-    typer.Option("--env", "-e", case_sensitive=False),
+    typer.Option(
+        "--env",
+        "-e",
+        case_sensitive=False,
+        help="The environment of the Keycloak instance to use",
+    ),
 ]
 
 client_arg = Annotated[
     str,
-    typer.Argument(
+    typer.Option(
+        "--client",
+        case_sensitive=False,
         help="The Client ID of the Keycloak client to authenticate against",
     ),
 ]
