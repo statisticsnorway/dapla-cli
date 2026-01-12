@@ -24,7 +24,7 @@ err = Console(stderr=True)
 console = Console()
 logger = logging.getLogger(__name__)
 
-CLIENT_ID = "dapla-cli"
+DAPLA_CLI_CLIENT_ID = "dapla-cli"
 POLL_INTERVAL = 5  # Time to wait between polling attempts (in seconds)
 
 
@@ -36,7 +36,7 @@ class Env(str, Enum):
     dev = "dev"
 
 
-env_config = {
+keycloak_settings = {
     Env.prod: {"keycloak_url": "https://auth.ssb.no"},
     Env.test: {"keycloak_url": "https://auth.test.ssb.no"},
     Env.dev: {"keycloak_url": "https://auth-play.test.ssb.no"},
@@ -47,6 +47,13 @@ env_config = {
 env_option = Annotated[
     Env,
     typer.Option("--env", "-e", case_sensitive=False),
+]
+
+client_arg = Annotated[
+    str,
+    typer.Argument(
+        help="The Client ID of the Keycloak client to authenticate against",
+    ),
 ]
 
 clipboard_option = Annotated[
@@ -60,30 +67,38 @@ clipboard_option = Annotated[
 ]
 
 
-def _config(env: Env, key: str) -> str:
-    return env_config[env][key]
+def _get_keycloak_setting(env: Env, key: str) -> str:
+    return keycloak_settings[env][key]
 
 
 @app.command()
-def login(env: env_option = Env.prod) -> None:
+def login(env: env_option = Env.prod, client: client_arg = DAPLA_CLI_CLIENT_ID) -> None:
     """Log in to Keycloak."""
-    device_info = _init_device_flow(env)
-    _poll_for_token(device_info["device_code"], device_info["code_verifier"], env)
+    device_info = _init_device_flow(env, client)
+    _poll_for_token(
+        device_info["device_code"], device_info["code_verifier"], env, client
+    )
 
 
 @app.command()
-def logout(env: env_option = Env.prod) -> None:
+def logout(
+    env: env_option = Env.prod, client: client_arg = DAPLA_CLI_CLIENT_ID
+) -> None:
     """Log out of Keycloak."""
-    refresh_token = config.get("auth", "refresh_token", env.value)
+    refresh_token = config.get(
+        "auth", "refresh_token", namespace=f"{client}-{env.value}"
+    )
     if refresh_token:
         payload = {
-            "client_id": CLIENT_ID,
+            "client_id": DAPLA_CLI_CLIENT_ID,
             "refresh_token": refresh_token,
         }
-        response = requests.post(_config(env, "keycloak_url"), data=payload)
+        response = requests.post(
+            _get_keycloak_setting(env.value, "keycloak_url"), data=payload
+        )
         if response.status_code == 200:
             rich_print("Logged out successfully")
-            config.remove("auth", namespace=env.value)
+            config.remove("auth", namespace=f"{client}-{env.value}")
         else:
             rich_print(f"Error logging out: {response.status_code} - {response.text}")
     else:
@@ -93,6 +108,7 @@ def logout(env: env_option = Env.prod) -> None:
 @app.command()
 def show_access_token(
     env: env_option = Env.prod,
+    client: client_arg = DAPLA_CLI_CLIENT_ID,
     decoded: Annotated[
         bool,
         typer.Option("--decoded", "-d", help="Decode the token to see its contents"),
@@ -100,7 +116,7 @@ def show_access_token(
     to_clipboard: clipboard_option = False,
 ) -> None:
     """Print the local access token (if logged in)."""
-    access_token = local_access_token(env, ensure_valid=True)
+    access_token = local_access_token(env=env, client=client, ensure_valid=True)
 
     if decoded:
         decoded_token = jwt.decode(access_token, options={"verify_signature": False})
@@ -112,7 +128,7 @@ def show_access_token(
             pyperclip.copy(access_token)
 
 
-def local_access_token(env: Env, ensure_valid: bool = True) -> str:
+def local_access_token(env: Env, client: str, ensure_valid: bool = True) -> str:
     """Return the access token stored in the local configuration.
 
     If the token is not found, the user is prompted to log in.
@@ -127,7 +143,7 @@ def local_access_token(env: Env, ensure_valid: bool = True) -> str:
     Raises:
         Exit: If no access token is found, prompts the user to log in and exits.
     """
-    access_token = config.get("auth", "access_token", namespace=env.value)
+    access_token = config.get("auth", "access_token", namespace=f"{client}-{env.value}")
     if not access_token:
         rich_print(f"No access token found for {env.value}. Please log in.")
         raise typer.Exit(code=1)
@@ -136,25 +152,23 @@ def local_access_token(env: Env, ensure_valid: bool = True) -> str:
         decoded_token = jwt.decode(access_token, options={"verify_signature": False})
         current_time = time.time()
         if (current_time + 300) >= decoded_token["exp"]:
-            access_token = _refresh_token(env)
+            access_token = _refresh_token(env, client)
 
     return access_token or ""
 
 
-def _init_device_flow(env: Env) -> dict[str, str]:
+def _init_device_flow(env: Env, client: str) -> dict[str, str]:
     # Generate PKCE values
     code_verifier = _generate_code_verifier()
     code_challenge = _generate_code_challenge(code_verifier)
 
     payload = {
-        "client_id": CLIENT_ID,
+        "client_id": DAPLA_CLI_CLIENT_ID,
         "scope": "openid",
         "code_challenge_method": "S256",
         "code_challenge": code_challenge,
     }
-    device_auth_url = (
-        f"{_config(env, 'keycloak_url')}/realms/ssb/protocol/openid-connect/auth/device"
-    )
+    device_auth_url = f"{_get_keycloak_setting(env.value, 'keycloak_url')}/realms/ssb/protocol/openid-connect/auth/device"
     response = requests.post(device_auth_url, data=payload)
 
     if response.status_code == 200:
@@ -177,7 +191,7 @@ def _init_device_flow(env: Env) -> dict[str, str]:
         raise typer.Exit(code=1)
 
 
-def _poll_for_token(device_code: str, code_verifier: str, env: Env) -> str:
+def _poll_for_token(device_code: str, code_verifier: str, env: Env, client: str) -> str:
     """Polls the token endpoint until the user completes authentication, with a progress bar."""
     with Progress(
         SpinnerColumn(),
@@ -188,13 +202,13 @@ def _poll_for_token(device_code: str, code_verifier: str, env: Env) -> str:
 
         while True:
             payload = {
-                "client_id": CLIENT_ID,
+                "client_id": DAPLA_CLI_CLIENT_ID,
                 "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
                 "device_code": device_code,
                 "code_verifier": code_verifier,
             }
 
-            token_url = f"{_config(env, 'keycloak_url')}/realms/ssb/protocol/openid-connect/token"
+            token_url = f"{_get_keycloak_setting(env.value, 'keycloak_url')}/realms/ssb/protocol/openid-connect/token"
             response = requests.post(token_url, data=payload)
 
             if response.status_code == 200:
@@ -205,13 +219,13 @@ def _poll_for_token(device_code: str, code_verifier: str, env: Env) -> str:
                     section="auth",
                     key="access_token",
                     value=access_token,
-                    namespace=env.value,
+                    namespace=f"{client}-{env.value}",
                 )
                 config.put(
                     section="auth",
                     key="refresh_token",
                     value=refresh_token,
-                    namespace=env.value,
+                    namespace=f"{client}-{env.value}",
                 )
                 rich_print(green("OK"))
                 return access_token
@@ -252,20 +266,22 @@ def _generate_code_challenge(verifier: str) -> str:
     return base64.urlsafe_b64encode(challenge).decode("utf-8").rstrip("=")
 
 
-def _refresh_token(env: Env) -> str:
+def _refresh_token(env: Env, client: str) -> str:
     """Refreshes the access token using the refresh token."""
-    refresh_token = config.get("auth", "refresh_token", namespace=env.value)
+    refresh_token = config.get(
+        "auth", "refresh_token", namespace=f"{client}-{env.value}"
+    )
     if not refresh_token:
         rich_print("No refresh token found. Please log in.")
         raise typer.Exit(code=1)
 
     payload = {
-        "client_id": CLIENT_ID,
+        "client_id": DAPLA_CLI_CLIENT_ID,
         "grant_type": "refresh_token",
         "refresh_token": refresh_token,
     }
     response = requests.post(
-        f"{_config(env, 'keycloak_url')}/realms/ssb/protocol/openid-connect/token",
+        f"{_get_keycloak_setting(env.value, 'keycloak_url')}/realms/ssb/protocol/openid-connect/token",
         data=payload,
     )
 
@@ -277,13 +293,13 @@ def _refresh_token(env: Env) -> str:
             section="auth",
             key="access_token",
             value=new_access_token,
-            namespace=env.value,
+            namespace=f"{client}-{env.value}",
         )
         config.put(
             section="auth",
             key="refresh_token",
             value=new_refresh_token,
-            namespace=env.value,
+            namespace=f"{client}-{env.value}",
         )
         return new_access_token
     else:
