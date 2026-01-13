@@ -97,7 +97,7 @@ def logout(
     )
     if refresh_token:
         payload = {
-            "client_id": DAPLA_CLI_CLIENT_ID,
+            "client_id": client,
             "refresh_token": refresh_token,
         }
         response = requests.post(
@@ -171,7 +171,7 @@ def _init_device_flow(env: Env, client: str) -> dict[str, str]:
     code_challenge = _generate_code_challenge(code_verifier)
 
     payload = {
-        "client_id": DAPLA_CLI_CLIENT_ID,
+        "client_id": client,
         "scope": "openid",
         "code_challenge_method": "S256",
         "code_challenge": code_challenge,
@@ -210,7 +210,7 @@ def _poll_for_token(device_code: str, code_verifier: str, env: Env, client: str)
 
         while True:
             payload = {
-                "client_id": DAPLA_CLI_CLIENT_ID,
+                "client_id": client,
                 "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
                 "device_code": device_code,
                 "code_verifier": code_verifier,
@@ -284,7 +284,7 @@ def _refresh_token(env: Env, client: str) -> str:
         raise typer.Exit(code=1)
 
     payload = {
-        "client_id": DAPLA_CLI_CLIENT_ID,
+        "client_id": client,
         "grant_type": "refresh_token",
         "refresh_token": refresh_token,
     }
