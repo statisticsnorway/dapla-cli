@@ -1,6 +1,6 @@
 import importlib.metadata
 import io
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import mock
 
 import pytest
@@ -54,13 +54,13 @@ def test_strip_ansi_empty_string():
 
 
 def test_hours_since_valid_datetime():
-    dt = datetime.now(timezone.utc) - timedelta(hours=5)
+    dt = datetime.now(UTC) - timedelta(hours=5)
     result = utils.hours_since(dt)
     assert result == 5
 
 
 def test_hours_since_future_datetime():
-    dt = datetime.now(timezone.utc) + timedelta(hours=5)
+    dt = datetime.now(UTC) + timedelta(hours=5)
     result = utils.hours_since(dt)
     assert result == -5
 

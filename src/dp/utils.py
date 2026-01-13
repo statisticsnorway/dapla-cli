@@ -1,7 +1,7 @@
 import importlib.metadata
 import re
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import requests
@@ -53,7 +53,7 @@ def strip_ansi(text: str) -> str:
 def hours_since(dt: datetime) -> int:
     """Calculate the number of hours since a given datetime."""
     # delta = datetime.now(timezone.utc) - dateutil.parser.isoparse(dt)
-    delta = datetime.now(timezone.utc) - dt
+    delta = datetime.now(UTC) - dt
     return int(delta.total_seconds() // 3600)
 
 
