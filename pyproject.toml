@@ -87,7 +87,7 @@ disable_error_code = [
 force-exclude = true  # Apply excludes to pre-commit
 show-fixes = true
 src = ["src", "tests"]
-target-version = "py310"  # Minimum Python version supported
+target-version = "py312"  # Minimum Python version supported
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
 extend-exclude = [
   "__pycache__",
@@ -112,8 +112,6 @@ select = [
   "RUF",  # the ruff developer's own rules
 ]
 ignore = [
-  "ANN101",  # Supress missing-type-self.
-  "ANN102",  # Supress missing-type-cls.
   "ANN202",  # Don't requiere return type annotation for private functions.
   "ANN401",  # Allow type annotation with type Any.
   "D100",  # Supress undocumented-public-module. Only doc of public api required.
